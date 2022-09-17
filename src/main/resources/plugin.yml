@@ -1,0 +1,11 @@
+name: nationsplus-economy
+main: com.ollethunberg.NationsPlusEconomy
+version: 0.0.1
+api-version: 1.19
+author: Olle Thunberg
+description: A plugin for NationsPlus that adds an economy
+commands:
+  balance:
+    description: Check your balance
+    usage: /<command> <player name | nation name>
+    aliases: [bal, money, m, b]

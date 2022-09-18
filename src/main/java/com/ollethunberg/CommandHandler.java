@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.ollethunberg.commands.CommandBalance;
+import com.ollethunberg.commands.CommandPay;
 
 public class CommandHandler implements CommandExecutor {
 
@@ -42,6 +43,13 @@ public class CommandHandler implements CommandExecutor {
                     // args[2] = amount
                     if (args[0] != null && args[2] != null) {
                         new CommandBalance(conn).give(executor, args[0], Float.parseFloat(args[2]));
+                        return true;
+                    }
+                }
+            } else if (cmd.equalsIgnoreCase("pay")) {
+                if (args.length == 2) {
+                    if (args[0] != null && args[1] != null) {
+                        new CommandPay(conn).pay(executor, args[0], Float.parseFloat(args[1]));
                         return true;
                     }
                 }

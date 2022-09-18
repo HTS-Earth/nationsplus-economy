@@ -9,3 +9,7 @@ commands:
     description: Check your balance
     usage: /<command> <target> <action> [amount]
     aliases: [bal, money, m, b]
+  pay:
+    description: Pay other players
+    usage: /<command> <target> [amount]
+    aliases: [pay, p]

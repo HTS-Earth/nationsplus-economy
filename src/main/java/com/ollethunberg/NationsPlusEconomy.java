@@ -40,6 +40,7 @@ public class NationsPlusEconomy extends JavaPlugin {
 
       // Register commands
       getCommand("balance").setExecutor(commandHandler);
+      getCommand("pay").setExecutor(commandHandler);
       this.runTimer();
     } catch (SQLException e) {
       System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());

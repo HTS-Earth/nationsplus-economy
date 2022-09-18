@@ -7,5 +7,5 @@ description: A plugin for NationsPlus that adds an economy
 commands:
   balance:
     description: Check your balance
-    usage: /<command> <player name | nation name>
+    usage: /<command> <target> <action> [amount]
     aliases: [bal, money, m, b]

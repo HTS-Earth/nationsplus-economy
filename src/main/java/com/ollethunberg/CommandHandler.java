@@ -22,22 +22,30 @@ public class CommandHandler implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        String cmd = command.getName();
         if (sender instanceof Player) {
-            String cmd = command.getName();
+
             Player executor = (Player) sender;
             if (cmd.equalsIgnoreCase("balance")) {
                 if (args.length == 0) {
-                    new CommandBalance(conn).execute(executor, executor.getName());
+                    new CommandBalance(conn).balance(executor, executor.getName());
                     return true;
                 } else if (args.length == 1) {
                     if (args[0] != null) {
-                        new CommandBalance(conn).execute(executor, args[0]);
+                        new CommandBalance(conn).balance(executor, args[0]);
+                        return true;
+                    }
+
+                } else if (args[1].equalsIgnoreCase("give")) {
+                    // args[0] = target
+                    // args[1] = give
+                    // args[2] = amount
+                    if (args[0] != null && args[2] != null) {
+                        new CommandBalance(conn).give(executor, args[0], Float.parseFloat(args[2]));
                         return true;
                     }
                 }
             }
-        } else {
-            sender.sendMessage("You must be a player to use this command!");
         }
 
         return false;

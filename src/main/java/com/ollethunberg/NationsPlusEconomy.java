@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.entity.Player;
 import org.postgresql.Driver;
 
 import com.ollethunberg.lib.SQLHelper;
@@ -66,19 +67,23 @@ public class NationsPlusEconomy extends JavaPlugin {
               "select p.player_name, n.tax, p.balance, n.name from player as p inner join nation as n on n.name = p.nation where n.tax > 0;");
 
           while (playerResultSet.next()) {
+
             String playerName = playerResultSet.getString("player_name");
             int tax = playerResultSet.getInt("tax");
-            if (playerName != null && tax > 0) {
-              Bukkit.getPlayer(playerName).sendMessage("§eYou have paid §a" + tax + "§r%§e in taxes!");
-              // your new balance is...
-              float balance = playerResultSet.getFloat("balance");
-              Bukkit.getPlayer(playerName).sendMessage("§eYour new balance is: §a$" + balance);
-              // give the nation the money
-              if (playerResultSet.getString("name") != null) {
-                sqlHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
-                    playerResultSet.getString("name"));
+            if (playerResultSet.getString("name") != null) {
+              sqlHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
+                  playerResultSet.getString("name"));
+            }
 
+            if (playerName != null) {
+              Player player = Bukkit.getPlayer(playerName);
+              if (player != null) {
+                Bukkit.getPlayer(playerName).sendMessage("§eYou have paid §a" + tax + "§r%§e in taxes!");
+                // your new balance is...
+                float balance = playerResultSet.getFloat("balance");
+                Bukkit.getPlayer(playerName).sendMessage("§eYour new balance is: §a$" + balance);
               }
+
             }
           }
           // run again

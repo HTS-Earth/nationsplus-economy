@@ -17,9 +17,6 @@ public class CommandBalance {
 
     public void execute(Player player, String target) {
         try {
-            // log target
-            System.out.println("target: " + target);
-
             if (target == player.getName()) {
 
                 ResultSet balanceResultSet = sqlHelper.query("SELECT balance from player where uid = ?",
@@ -48,7 +45,7 @@ public class CommandBalance {
             }
 
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
+
             e.printStackTrace();
         }
 

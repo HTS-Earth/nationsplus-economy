@@ -41,6 +41,9 @@ public class NationsPlusEconomy extends JavaPlugin {
       // Register commands
       getCommand("balance").setExecutor(commandHandler);
       getCommand("pay").setExecutor(commandHandler);
+      getCommand("bank").setExecutor(commandHandler);
+      getCommand("banks").setExecutor(commandHandler);
+      getCommand("bankmanager").setExecutor(commandHandler);
       this.runTimer();
     } catch (SQLException e) {
       System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
@@ -86,6 +89,64 @@ public class NationsPlusEconomy extends JavaPlugin {
               }
 
             }
+          }
+          // banks and loans clock
+          try {
+            String activeLoans = "select * from bank_loan where active = true AND amount_paid < amount_total;";
+            ResultSet activeLoansResult = sqlHelper.query(activeLoans);
+            while (activeLoansResult.next()) {
+              int loanId = activeLoansResult.getInt("id");
+              int amountPaid = activeLoansResult.getInt("amount_paid");
+              int payments_left = activeLoansResult.getInt("payments_left");
+              int payments_total = activeLoansResult.getInt("payments_total");
+              int amountTotal = activeLoansResult.getInt("amount_total");
+              int interest = activeLoansResult.getInt("interest_rate");
+              int interestToPay = (int) Math.round(amountTotal * interest);
+              int amountToPay = amountTotal / payments_total;
+              int totalAmountToPay = amountToPay + interestToPay;
+              String player_id = activeLoansResult.getString("player_id");
+              String bankName = activeLoansResult.getString("bank_name");
+              // check if player has enough money
+              ResultSet playerBalance = sqlHelper.query("select balance from bank_account where player_id= ?;",
+                  player_id);
+              if (playerBalance.next()) {
+                float balance = playerBalance.getFloat("balance");
+                if (balance >= totalAmountToPay) {
+                  // pay the loan
+                  sqlHelper.update("update bank_account set balance = balance - ? where player_id = ?;",
+                      totalAmountToPay,
+                      player_id);
+                  sqlHelper.update(
+                      "update bank_loan set amount_paid = amount_paid + ?, payments_left = payments_left - 1 where id = ?;",
+                      amountToPay, loanId);
+                  // check if loan is paid
+                  if (payments_left == 1) {
+                    sqlHelper.update("update bank_loan set active = false where id = ?;", loanId);
+
+                    // send message to player
+                    Player player = Bukkit.getPlayer(player_id);
+                    if (player != null) {
+                      player.sendMessage("§eYour loan has been paid off! ");
+                    }
+                  }
+                  // send message to player
+                  Player player = Bukkit.getPlayer(player_id);
+                  if (player != null) {
+                    player.sendMessage("§eYou have paid §a$" + amountToPay + "§e in interest and §a$" + amountToPay
+                        + "§e in loan payments! §a-$" + totalAmountToPay);
+                  }
+                } else {
+                  // send message to player
+                  Player player = Bukkit.getPlayer(player_id);
+                  if (player != null) {
+                    player.sendMessage("§eYou do not have enough money to pay your loan! §c-$" + totalAmountToPay);
+                  }
+                }
+              }
+
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
           }
           // run again
           runTimer();

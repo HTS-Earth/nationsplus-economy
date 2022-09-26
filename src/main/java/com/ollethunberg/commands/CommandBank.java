@@ -18,12 +18,12 @@ public class CommandBank extends BalanceHelper {
     // the bank is created with a balance of $0
     public void createBank(Player player, String bankName) throws SQLException {
         // check if the player has a big enough balance to create a bank
-        ResultSet balanceResultSet = query("SELECT balance from player as p inner join  where uid = ?",
+        ResultSet balanceResultSet = query("SELECT balance from player where uid = ?",
                 player.getUniqueId().toString());
         if (balanceResultSet.next()) {
             if (balanceResultSet.getFloat("balance") >= 1000) {
                 // check if the bank already exists
-                ResultSet bankResultSet = query("SELECT * from bank where LOWER(name) = LOWER(?)", bankName);
+                ResultSet bankResultSet = query("SELECT * from bank where LOWER(bank_name) = LOWER(?)", bankName);
                 if (bankResultSet.next()) {
                     player.sendMessage("§cThat bank already exists!");
                 } else {
@@ -63,6 +63,186 @@ public class CommandBank extends BalanceHelper {
             }
         } else {
             player.sendMessage("§cThe interest must be between 0 and 1!");
+        }
+
+    }
+
+    public void listBanks(Player player) throws SQLException {
+        // check if the player is the owner of the bank
+
+        // list the banks
+        ResultSet banksResultSet = query(
+                "SELECT b.*, p.player_name,(SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance, (select count(*) from bank_account where bank_name=b.bank_name) as customers from bank as b inner join player as p on b.owner = p.uid");
+        player.sendMessage("§eBanks:");
+        while (banksResultSet.next()) {
+            player.sendMessage(
+                    "-§l§6[§r" + banksResultSet.getString("bank_name") + "§6]§r-");
+
+            player.sendMessage("§eAvailable funds: §a$" + banksResultSet.getFloat("balance"));
+            player.sendMessage("§eCustomer's funds: §a$" + banksResultSet.getFloat("customers_balance"));
+            player.sendMessage("§eSaving interest: §a" + banksResultSet.getFloat("saving_interest") * 100 + "%§r");
+            // safety rating is the ratio between the bank's balance and the total balance
+            // of all customers
+            Float safetyRating = banksResultSet.getFloat("balance")
+                    / banksResultSet.getFloat("customers_balance");
+            player.sendMessage("§eSafety-rating§r: " + colorFromPercentageValue(safetyRating)
+                    + safetyRating * 100
+                    + "%§r");
+
+            player.sendMessage("§eOwner: §6" + banksResultSet.getString("player_name"));
+            player.sendMessage("§eCustomers: §a" + banksResultSet.getInt("customers"));
+
+        }
+
+    }
+
+    public String colorFromPercentageValue(float value) {
+        if (value >= 0.8) {
+            return "§a";
+        } else if (value >= 0.6) {
+            return "§e";
+        } else if (value >= 0.4) {
+            return "§6";
+        } else if (value >= 0.2) {
+            return "§c";
+        } else {
+            return "§4";
+        }
+
+    }
+
+    public void bankAccount(Player player) throws SQLException {
+        // get the players balance from the bank he is currently in
+        ResultSet bankResultSet = query(
+                "SELECT ba.*, b.balance as bank_balance, b.saving_interest from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name where LOWER(ba.player_id) = LOWER(?)",
+                player.getUniqueId().toString());
+
+        if (bankResultSet.next()) {
+            player.sendMessage("§eYour balance in §6[§r" + bankResultSet.getString("bank_name") + "§6]§r is §a$"
+                    + bankResultSet.getFloat("balance") + "§r!");
+
+            player.sendMessage("§eThe bank's saving interest is §a" + bankResultSet.getFloat("saving_interest") * 100
+                    + "%§r!");
+            // warn if the bank is in danger of going bankrupt
+            if (bankResultSet.getFloat("bank_balance") / bankResultSet.getFloat("balance") < 4) {
+                player.sendMessage("§cThe bank is in danger of going bankrupt!");
+            }
+
+        } else {
+            player.sendMessage("§cYou don't have a bank account!");
+        }
+    }
+
+    public void openBankAccount(Player player, String bankName) throws SQLException {
+        // check if the bank exists
+        // check if the player is the owner of the bank
+        // check if the player already has an account in the bank
+        // create the account
+
+        ResultSet bankResultSet = query("SELECT * from bank where LOWER(bank_name) = LOWER(?)", bankName);
+        if (bankResultSet.next()) {
+
+            // check if the player already has an account in the bank
+            ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
+                    player.getUniqueId().toString());
+            if (bankAccountResultSet.next()) {
+                player.sendMessage("§cYou already have a bank account in the bank §6[§r" + bankName + "§6]§r!");
+            } else {
+                // create the account
+                String createBankAccountSQL = "INSERT INTO bank_account (bank_name, player_id, balance) VALUES (?, ?, ? )";
+                update(createBankAccountSQL, bankName, player.getUniqueId().toString(), 0);
+                player.sendMessage("§eYou created an account in §6[§r" + bankName + "§6]§r!");
+                player.sendMessage("§eYou can now deposit and withdraw money from the bank!");
+            }
+        } else {
+            player.sendMessage("§cThat bank doesn't exist!");
+        }
+
+    }
+
+    public void closeBankAccount(Player player) throws SQLException {
+        // check if the player has an account in the bank
+        // delete the account
+        ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
+                player.getUniqueId().toString());
+        if (bankAccountResultSet.next()) {
+            // withdraw all the money
+            withdraw(player, bankAccountResultSet.getFloat("balance"));
+            // delete the account
+            String deleteBankAccountSQL = "DELETE FROM bank_account WHERE LOWER(player_id) = LOWER(?)";
+            update(deleteBankAccountSQL, player.getUniqueId().toString());
+            player.sendMessage("§eYou closed your bank account!");
+        } else {
+            player.sendMessage("§cYou don't have a bank account!");
+        }
+    }
+
+    // deposit money into the bank
+    public void deposit(Player player, Float amount) throws SQLException {
+        // check if the player has an account in the bank
+        // check if the player has enough money
+        // add the money to the bank
+        // subtract the money from the player
+        ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
+                player.getUniqueId().toString());
+        if (bankAccountResultSet.next()) {
+            // check if the player has enough money
+            ResultSet balanceResultSet = query("SELECT balance from player where uid = ?",
+                    player.getUniqueId().toString());
+            if (balanceResultSet.next()) {
+                if (balanceResultSet.getFloat("balance") >= amount) {
+                    // add the money to the bank
+                    String depositSQL = "UPDATE bank_account SET balance = balance + ? WHERE LOWER(player_id) = LOWER(?)";
+                    String updateBankBalanceSQL = "UPDATE bank SET balance = balance + ? WHERE LOWER(bank_name) = LOWER(?)";
+                    update(updateBankBalanceSQL, amount, bankAccountResultSet.getString("bank_name"));
+                    update(depositSQL, amount, player.getUniqueId().toString());
+                    // subtract the money from the player
+                    addBalancePlayer(player.getUniqueId().toString(), -amount);
+                    player.sendMessage("§eYou deposited §a$" + amount + "§e into the bank!");
+                } else {
+                    player.sendMessage("§cYou don't have enough money!");
+                }
+            } else {
+                player.sendMessage("§cYou don't have a balance yet!");
+            }
+        } else {
+            player.sendMessage("§cYou don't have a bank account!");
+        }
+    }
+
+    public void withdraw(Player player, Float amount) throws SQLException {
+        if (amount <= 0) {
+            player.sendMessage("§cYou can't withdraw a negative amount!");
+            return;
+        }
+        // withdraw the money from the bank using the banks balance. If the bank doesn't
+        // have enough money, the player will get a message
+        // add the money to the player
+        ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
+                player.getUniqueId().toString());
+        if (bankAccountResultSet.next()) {
+            // check if the bank has enough money
+            ResultSet bankResultSet = query("SELECT * from bank where LOWER(bank_name) = LOWER(?)",
+                    bankAccountResultSet.getString("bank_name"));
+            if (bankResultSet.next()) {
+                if (bankResultSet.getFloat("balance") >= amount) {
+                    // withdraw the money from the bank account
+                    String withdrawSQL = "UPDATE bank_account SET balance = balance - ? WHERE LOWER(player_id) = LOWER(?)";
+                    update(withdrawSQL, amount, player.getUniqueId().toString());
+                    // remove the money from the banks balance
+                    String removeMoneyFromBankSQL = "UPDATE bank SET balance = balance - ? WHERE LOWER(bank_name) = LOWER(?)";
+                    update(removeMoneyFromBankSQL, amount, bankAccountResultSet.getString("bank_name"));
+                    // add the money to the player
+                    addBalancePlayer(player.getUniqueId().toString(), amount);
+                    player.sendMessage("§eYou withdrew §a$" + amount + "§e from the bank!");
+                } else {
+                    player.sendMessage("§cThe bank doesn't have enough money!");
+                }
+            } else {
+                player.sendMessage("§cThe bank doesn't exist!");
+            }
+        } else {
+            player.sendMessage("§cYou don't have a bank account!");
         }
 
     }

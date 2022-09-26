@@ -15,6 +15,10 @@ public class CommandPay extends BalanceHelper {
 
     // pay command
     public void pay(Player sender, String target, float amount) {
+        if (amount <= 0) {
+            sender.sendMessage("§cYou can't pay a negative amount!");
+            return;
+        }
         // check which entity type the target is
         try {
 

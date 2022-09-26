@@ -13,3 +13,15 @@ commands:
     description: Pay other players
     usage: /<command> <target> [amount]
     aliases: [pay, p]
+  bank:
+    description: General bank command
+    usage: /<command> <action>
+    aliases: [bank, b]
+  banks:
+    description: Lists all the banks
+    usage: /<command>
+    aliases: [banks]
+  bankmanager:
+    description: Lists all the banks
+    usage: /<command> <interest | loans>
+    aliases: [bm, bankmanager]

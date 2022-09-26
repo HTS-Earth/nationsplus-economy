@@ -18,10 +18,12 @@ public class CommandBalance extends BalanceHelper {
         try {
             if (target == player.getName()) {
 
-                ResultSet balanceResultSet = query("SELECT balance from player where uid = ?",
+                ResultSet balanceResultSet = query(
+                        "SELECT p.balance, (select balance from bank_account where player_id=p.uid) as bank_balance from player as p where p.uid = ?",
                         player.getUniqueId().toString());
                 if (balanceResultSet.next()) {
-                    player.sendMessage("§eYour balance is: §a$" + balanceResultSet.getFloat("balance"));
+                    player.sendMessage("§eYour wallet balance is: §a$" + balanceResultSet.getFloat("balance"));
+                    player.sendMessage("§eYour bank balance is: §a$" + balanceResultSet.getFloat("bank_balance"));
                 } else {
                     player.sendMessage("§cYou don't have a balance yet!");
                 }

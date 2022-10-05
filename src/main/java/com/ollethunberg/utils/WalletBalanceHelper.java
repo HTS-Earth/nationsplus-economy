@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 import com.ollethunberg.lib.SQLHelper;
 
-public class BalanceHelper extends SQLHelper {
-    public BalanceHelper(Connection conn) {
+public class WalletBalanceHelper extends SQLHelper {
+    public WalletBalanceHelper(Connection conn) {
         super(conn);
     }
 
@@ -49,9 +49,15 @@ public class BalanceHelper extends SQLHelper {
         }
     }
 
-    public float getBalance(String target) throws SQLException {
+    public float getBalance(String target, boolean useId) throws SQLException {
         // check if the target is a player or nation
-        ResultSet playerResultSet = query("SELECT uid,balance from player where LOWER(player_name) = LOWER(?)", target);
+        String sql;
+        if (useId)
+            sql = "SELECT uid,balance from player where uid = ?;";
+        else
+            sql = "SELECT uid,balance from player where LOWER(player_name) = LOWER(?)";
+
+        ResultSet playerResultSet = query(sql, target);
         if (playerResultSet.next()) {
             return playerResultSet.getFloat("balance");
         } else {

@@ -1,4 +1,4 @@
-package com.ollethunberg.commands;
+package com.ollethunberg.commands.bank;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -6,10 +6,11 @@ import java.sql.SQLException;
 
 import org.bukkit.entity.Player;
 
-import com.ollethunberg.utils.BalanceHelper;
+import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.utils.WalletBalanceHelper;
 
-public class CommandBank extends BalanceHelper {
-    public CommandBank(Connection _connection) {
+public class Bank extends WalletBalanceHelper {
+    public Bank(Connection _connection) {
         super(_connection);
     }
 
@@ -25,7 +26,7 @@ public class CommandBank extends BalanceHelper {
                 // check if the bank already exists
                 ResultSet bankResultSet = query("SELECT * from bank where LOWER(bank_name) = LOWER(?)", bankName);
                 if (bankResultSet.next()) {
-                    player.sendMessage("§cThat bank already exists!");
+                    player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cThat bank already exists!");
                 } else {
                     // create the bank
                     String createBankSQL = "INSERT INTO bank (bank_name, balance, owner, saving_interest) VALUES (?, ?, ?, ? )";
@@ -35,13 +36,16 @@ public class CommandBank extends BalanceHelper {
                     // subtract the cost of creating the bank from the player's balance
                     addBalancePlayer(player.getUniqueId().toString(), -1000);
 
-                    player.sendMessage("§eYou created a bank called §6[§r" + bankName + "§6]§r!");
+                    player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§eYou created a bank called §6[§r"
+                            + bankName + "§6]§r!");
                 }
             } else {
-                player.sendMessage("§cYou don't have enough money to create a bank!");
+                player.sendMessage(
+                        NationsPlusEconomy.bankManagerPrefix
+                                + "§cYou don't have enough money to create a bank! ($1000)");
             }
         } else {
-            player.sendMessage("§cYou don't have a balance yet!");
+            player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cYou don't have a balance yet!");
         }
     }
 
@@ -57,12 +61,13 @@ public class CommandBank extends BalanceHelper {
                 // set the interest
                 String setInterestSQL = "UPDATE bank SET saving_interest = ? WHERE LOWER(owner) = LOWER(?)";
                 update(setInterestSQL, interestFloat, player.getUniqueId().toString());
-                player.sendMessage("§eYou set the interest to §a" + interestFloat * 100 + "%§e!");
+                player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§eYou set the interest to §a"
+                        + interestFloat * 100 + "%§e!");
             } else {
-                player.sendMessage("§cYou don't own a bank!");
+                player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cYou don't own a bank!");
             }
         } else {
-            player.sendMessage("§cThe interest must be between 0 and 1!");
+            player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cThe interest must be between 0 and 1!");
         }
 
     }
@@ -78,9 +83,12 @@ public class CommandBank extends BalanceHelper {
             player.sendMessage(
                     "-§l§6[§r" + banksResultSet.getString("bank_name") + "§6]§r-");
 
-            player.sendMessage("§eAvailable funds: §a$" + banksResultSet.getFloat("balance"));
-            player.sendMessage("§eCustomer's funds: §a$" + banksResultSet.getFloat("customers_balance"));
-            player.sendMessage("§eSaving interest: §a" + banksResultSet.getFloat("saving_interest") * 100 + "%§r");
+            player.sendMessage("§eAvailable funds: §a"
+                    + NationsPlusEconomy.dollarFormat.format(banksResultSet.getFloat("balance")));
+            player.sendMessage("§eCustomer's funds: §a"
+                    + NationsPlusEconomy.dollarFormat.format(banksResultSet.getFloat("customers_balance")));
+            player.sendMessage("§eSaving interest: §a"
+                    + banksResultSet.getFloat("saving_interest") * 100 + "%§r");
             // safety rating is the ratio between the bank's balance and the total balance
             // of all customers
             Float safetyRating = banksResultSet.getFloat("balance")
@@ -118,18 +126,20 @@ public class CommandBank extends BalanceHelper {
                 player.getUniqueId().toString());
 
         if (bankResultSet.next()) {
-            player.sendMessage("§eYour balance in §6[§r" + bankResultSet.getString("bank_name") + "§6]§r is §a$"
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§eYour balance in §6[§r"
+                    + bankResultSet.getString("bank_name") + "§6]§r is §a$"
                     + bankResultSet.getFloat("balance") + "§r!");
 
-            player.sendMessage("§eThe bank's saving interest is §a" + bankResultSet.getFloat("saving_interest") * 100
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§eThe bank's saving interest is §a"
+                    + bankResultSet.getFloat("saving_interest") * 100
                     + "%§r!");
             // warn if the bank is in danger of going bankrupt
             if (bankResultSet.getFloat("bank_balance") / bankResultSet.getFloat("balance") < 4) {
-                player.sendMessage("§cThe bank is in danger of going bankrupt!");
+                player.sendMessage(NationsPlusEconomy.bankPrefix + "§cThe bank is in danger of going bankrupt!");
             }
 
         } else {
-            player.sendMessage("§cYou don't have a bank account!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou don't have a bank account!");
         }
     }
 
@@ -146,16 +156,18 @@ public class CommandBank extends BalanceHelper {
             ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
                     player.getUniqueId().toString());
             if (bankAccountResultSet.next()) {
-                player.sendMessage("§cYou already have a bank account in the bank §6[§r" + bankName + "§6]§r!");
+                player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou already have a bank account in the bank §6[§r"
+                        + bankName + "§6]§r!");
             } else {
                 // create the account
                 String createBankAccountSQL = "INSERT INTO bank_account (bank_name, player_id, balance) VALUES (?, ?, ? )";
                 update(createBankAccountSQL, bankName, player.getUniqueId().toString(), 0);
                 player.sendMessage("§eYou created an account in §6[§r" + bankName + "§6]§r!");
-                player.sendMessage("§eYou can now deposit and withdraw money from the bank!");
+                player.sendMessage(
+                        NationsPlusEconomy.bankPrefix + "§eYou can now deposit and withdraw money from the bank!");
             }
         } else {
-            player.sendMessage("§cThat bank doesn't exist!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cThat bank doesn't exist!");
         }
 
     }
@@ -171,14 +183,18 @@ public class CommandBank extends BalanceHelper {
             // delete the account
             String deleteBankAccountSQL = "DELETE FROM bank_account WHERE LOWER(player_id) = LOWER(?)";
             update(deleteBankAccountSQL, player.getUniqueId().toString());
-            player.sendMessage("§eYou closed your bank account!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§eYou closed your bank account!");
         } else {
-            player.sendMessage("§cYou don't have a bank account!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou don't have a bank account!");
         }
     }
 
     // deposit money into the bank
-    public void deposit(Player player, Float amount) throws SQLException {
+    public void deposit(Player player, Float amount) throws SQLException, Error {
+        // Check if the amount is positive
+        if (amount <= 0) {
+            throw new Error("You can't deposit a negative amount!");
+        }
         // check if the player has an account in the bank
         // check if the player has enough money
         // add the money to the bank
@@ -198,21 +214,26 @@ public class CommandBank extends BalanceHelper {
                     update(depositSQL, amount, player.getUniqueId().toString());
                     // subtract the money from the player
                     addBalancePlayer(player.getUniqueId().toString(), -amount);
-                    player.sendMessage("§eYou deposited §a$" + amount + "§e into the bank!");
+                    player.sendMessage(
+                            NationsPlusEconomy.bankPrefix + "§eYou deposited §a"
+                                    + NationsPlusEconomy.dollarFormat.format(amount) + "§e into the bank!");
                 } else {
-                    player.sendMessage("§cYou don't have enough money!");
+                    throw new Error(NationsPlusEconomy.bankPrefix + "You don't have enough money! You need §a"
+                            + NationsPlusEconomy.dollarFormat.format(amount - balanceResultSet.getFloat("balance"))
+                            + "§r more!");
                 }
             } else {
-                player.sendMessage("§cYou don't have a balance yet!");
+                throw new Error("You don't exist in the database. Something went terribly wrong!");
             }
         } else {
-            player.sendMessage("§cYou don't have a bank account!");
+            throw new Error(NationsPlusEconomy.bankPrefix + "§cYou don't have a bank account!");
+
         }
     }
 
     public void withdraw(Player player, Float amount) throws SQLException {
         if (amount <= 0) {
-            player.sendMessage("§cYou can't withdraw a negative amount!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou can't withdraw a negative amount!");
             return;
         }
         // withdraw the money from the bank using the banks balance. If the bank doesn't
@@ -234,15 +255,17 @@ public class CommandBank extends BalanceHelper {
                     update(removeMoneyFromBankSQL, amount, bankAccountResultSet.getString("bank_name"));
                     // add the money to the player
                     addBalancePlayer(player.getUniqueId().toString(), amount);
-                    player.sendMessage("§eYou withdrew §a$" + amount + "§e from the bank!");
+                    player.sendMessage(
+                            NationsPlusEconomy.bankPrefix + "§eYou withdrew §a"
+                                    + NationsPlusEconomy.dollarFormat.format(amount) + "§e from the bank!");
                 } else {
-                    player.sendMessage("§cThe bank doesn't have enough money!");
+                    player.sendMessage(NationsPlusEconomy.bankPrefix + "§cThe bank doesn't have enough money!");
                 }
             } else {
-                player.sendMessage("§cThe bank doesn't exist!");
+                player.sendMessage(NationsPlusEconomy.bankPrefix + "§cThe bank doesn't exist!");
             }
         } else {
-            player.sendMessage("§cYou don't have a bank account!");
+            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou don't have a bank account!");
         }
 
     }

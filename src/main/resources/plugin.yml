@@ -16,7 +16,7 @@ commands:
   bank:
     description: General bank command
     usage: /<command> <action>
-    aliases: [bank, b]
+    aliases: [bank]
   banks:
     description: Lists all the banks
     usage: /<command>
@@ -25,3 +25,7 @@ commands:
     description: Lists all the banks
     usage: /<command> <interest | loans>
     aliases: [bm, bankmanager]
+  loans:
+    description: Lists all the banks
+    usage: /<command> <action>
+    aliases: [loans, l]

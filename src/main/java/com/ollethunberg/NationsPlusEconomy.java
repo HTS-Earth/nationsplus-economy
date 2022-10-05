@@ -1,5 +1,7 @@
 package com.ollethunberg;
 
+import java.util.Locale;
+import java.util.UUID;
 import java.util.logging.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
@@ -7,19 +9,39 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.postgresql.Driver;
 
+import com.ollethunberg.commands.balance.BalanceHandler;
+import com.ollethunberg.commands.bank.BankHandler;
+import com.ollethunberg.commands.bankManager.BankManagerHandler;
 import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.utils.WalletBalanceHelper;
 
 import java.sql.*;
+import java.text.NumberFormat;
 
 /*
  * nationsplus-economy java plugin
  */
 public class NationsPlusEconomy extends JavaPlugin {
-  private static final Logger LOGGER = Logger.getLogger("nationsplus-economy");
+  public static String bankPrefix = "§6[§rBank§6]§r ";
+  public static String loanPrefix = "§6[§rBank-Loans§6]§r ";
+  public static String walletPrefix = "§6[§rWallet§6]§r ";
+  public static String bankManagerPrefix = "§6[§rBank Manager§6]§r ";
+  private static Locale usa = new Locale("en", "US");
+
+  public static NumberFormat dollarFormat = NumberFormat.getCurrencyInstance(usa);
+
+  public static final Logger LOGGER = Logger.getLogger("nationsplus-economy");
   private SQLHelper sqlHelper;
   public Connection connection;
+
+  /* Command handlers */
   private CommandHandler commandHandler;
+  private BalanceHandler balanceHandler;
+  private BankHandler bankHandler;
+  private BankManagerHandler bankManagerHandler;
+
   public Configuration config;
+  private WalletBalanceHelper walletBalanceHelper;
 
   public void onEnable() {
     loadConfig();
@@ -34,16 +56,21 @@ public class NationsPlusEconomy extends JavaPlugin {
 
       getLogger().info(connection.toString() + " connected to DB successfully!");
       sqlHelper = new SQLHelper(connection);
-      // Register command handler
+      walletBalanceHelper = new WalletBalanceHelper(connection);
+      // Register command handlers
       commandHandler = new CommandHandler(connection);
+      balanceHandler = new BalanceHandler(connection);
+      bankHandler = new BankHandler(connection);
+      bankManagerHandler = new BankManagerHandler(connection);
       // Register events listeners that needs a SQL connection
 
       // Register commands
-      getCommand("balance").setExecutor(commandHandler);
+      getCommand("balance").setExecutor(balanceHandler);
+      getCommand("bank").setExecutor(bankHandler);
+      getCommand("bankmanager").setExecutor(bankManagerHandler);
       getCommand("pay").setExecutor(commandHandler);
-      getCommand("bank").setExecutor(commandHandler);
       getCommand("banks").setExecutor(commandHandler);
-      getCommand("bankmanager").setExecutor(commandHandler);
+      getCommand("loans").setExecutor(commandHandler);
       this.runTimer();
     } catch (SQLException e) {
       System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
@@ -65,10 +92,11 @@ public class NationsPlusEconomy extends JavaPlugin {
         try {
           sqlHelper.update(updateSQL);
           // send message to all players
-          Bukkit.broadcastMessage("§eYou have been given $100 for being a loyal citizen! §a$+100");
+          Bukkit.broadcastMessage(
+              NationsPlusEconomy.walletPrefix + "§eYou have been given §a$100§e for being a loyal citizen! ");
           // inform each player about how much of the tax they have paid
           ResultSet playerResultSet = sqlHelper.query(
-              "select p.player_name, n.tax, p.balance, n.name from player as p inner join nation as n on n.name = p.nation where n.tax > 0;");
+              "select p.player_name, n.tax, p.balance, n.name, p.uid from player as p inner join nation as n on n.name = p.nation where n.tax > 0;");
 
           while (playerResultSet.next()) {
 
@@ -78,17 +106,22 @@ public class NationsPlusEconomy extends JavaPlugin {
               sqlHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
                   playerResultSet.getString("name"));
             }
-
-            if (playerName != null) {
-              Player player = Bukkit.getPlayer(playerName);
-              if (player != null) {
-                Bukkit.getPlayer(playerName).sendMessage("§eYou have paid §a" + tax + "§r%§e in taxes!");
-                // your new balance is...
-                float balance = playerResultSet.getFloat("balance");
-                Bukkit.getPlayer(playerName).sendMessage("§eYour new balance is: §a$" + balance);
-              }
-
+            if (playerName == null) {
+              continue;
             }
+
+            Player player = Bukkit.getPlayer(playerName);
+            if (player != null) {
+              player
+                  .sendMessage(NationsPlusEconomy.walletPrefix + "§eYou have paid §c" + tax + "%§e in income-taxes! §c-"
+                      + NationsPlusEconomy.dollarFormat.format(tax * 0.01 * 100));
+              // your new balance is...
+              float balance = playerResultSet.getFloat("balance");
+              Bukkit.getPlayer(playerName)
+                  .sendMessage(
+                      NationsPlusEconomy.walletPrefix + "§eYour new balance is: §a" + dollarFormat.format(balance));
+            }
+
           }
           // banks and loans clock
           try {
@@ -96,54 +129,81 @@ public class NationsPlusEconomy extends JavaPlugin {
             ResultSet activeLoansResult = sqlHelper.query(activeLoans);
             while (activeLoansResult.next()) {
               int loanId = activeLoansResult.getInt("id");
-              int amountPaid = activeLoansResult.getInt("amount_paid");
+              // int amountPaid = activeLoansResult.getInt("amount_paid");
               int payments_left = activeLoansResult.getInt("payments_left");
               int payments_total = activeLoansResult.getInt("payments_total");
               int amountTotal = activeLoansResult.getInt("amount_total");
-              int interest = activeLoansResult.getInt("interest_rate");
+              float interest = activeLoansResult.getFloat("interest_rate");
               int interestToPay = (int) Math.round(amountTotal * interest);
               int amountToPay = amountTotal / payments_total;
               int totalAmountToPay = amountToPay + interestToPay;
               String player_id = activeLoansResult.getString("player_id");
               String bankName = activeLoansResult.getString("bank_name");
               // check if player has enough money
-              ResultSet playerBalance = sqlHelper.query("select balance from bank_account where player_id= ?;",
+              ResultSet playerBankBalance = sqlHelper.query("select balance from bank_account where player_id= ?;",
                   player_id);
-              if (playerBalance.next()) {
-                float balance = playerBalance.getFloat("balance");
+              Player player = Bukkit.getPlayer(UUID.fromString(player_id));
+              // tell the player loan information
+              if (player != null) {
+                player.sendMessage(NationsPlusEconomy.bankPrefix + "§eYou have §a" + (payments_left - 1)
+                    + "§e payments left on your loan!");
+
+              }
+
+              if (playerBankBalance.next()) {
+                float balance = playerBankBalance.getFloat("balance");
                 if (balance >= totalAmountToPay) {
                   // pay the loan
                   sqlHelper.update("update bank_account set balance = balance - ? where player_id = ?;",
                       totalAmountToPay,
                       player_id);
-                  sqlHelper.update(
-                      "update bank_loan set amount_paid = amount_paid + ?, payments_left = payments_left - 1 where id = ?;",
-                      amountToPay, loanId);
-                  // check if loan is paid
-                  if (payments_left == 1) {
-                    sqlHelper.update("update bank_loan set active = false where id = ?;", loanId);
-
-                    // send message to player
-                    Player player = Bukkit.getPlayer(player_id);
-                    if (player != null) {
-                      player.sendMessage("§eYour loan has been paid off! ");
-                    }
-                  }
-                  // send message to player
-                  Player player = Bukkit.getPlayer(player_id);
-                  if (player != null) {
-                    player.sendMessage("§eYou have paid §a$" + amountToPay + "§e in interest and §a$" + amountToPay
-                        + "§e in loan payments! §a-$" + totalAmountToPay);
-                  }
+                  payOffLoans(UUID.fromString(player_id), amountToPay, totalAmountToPay, loanId, payments_left,
+                      interestToPay, bankName);
                 } else {
-                  // send message to player
-                  Player player = Bukkit.getPlayer(player_id);
+                  // check if the player can use his wallet balance
+                  float walletBalance = walletBalanceHelper.getBalance(player_id, true);
+                  if (walletBalance >= totalAmountToPay) {
+                    // pay the loan
+                    walletBalanceHelper.addBalancePlayer(player_id, -totalAmountToPay);
+                    payOffLoans(UUID.fromString(player_id), amountToPay, totalAmountToPay, loanId, payments_left,
+                        interestToPay, bankName);
+                    continue;
+                  }
+
                   if (player != null) {
-                    player.sendMessage("§eYou do not have enough money to pay your loan! §c-$" + totalAmountToPay);
+                    player.sendMessage(
+                        NationsPlusEconomy.bankPrefix
+                            + "§c§l[WARNING] §eYou do not have enough money to pay your loan! §c-"
+                            + dollarFormat.format(totalAmountToPay)
+                            + "§e You need §a"
+                            + dollarFormat.format((totalAmountToPay - balance)) + "§e more!");
                   }
                 }
               }
 
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          // bank account interest
+          try {
+            String bankAccounts = "select ba.player_id, ba.balance,b.saving_interest, b.bank_name from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name;";
+            ResultSet bankAccountsResult = sqlHelper.query(bankAccounts);
+            while (bankAccountsResult.next()) {
+              String player_id = bankAccountsResult.getString("player_id");
+              float balance = bankAccountsResult.getFloat("balance");
+              float interest = bankAccountsResult.getFloat("saving_interest");
+              float interestToGet = balance * interest;
+              String bankName = bankAccountsResult.getString("bank_name");
+              Player player = Bukkit.getPlayer(UUID.fromString(player_id));
+              if (player != null) {
+                player.sendMessage(
+                    NationsPlusEconomy.bankPrefix + "§eYou have earned §a" + dollarFormat.format(interestToGet)
+                        + "§e in saving interest from §6[§r"
+                        + bankName + "§6]§r");
+              }
+              sqlHelper.update("update bank_account set balance = balance + ? where player_id = ?;", interestToGet,
+                  player_id);
             }
           } catch (Exception e) {
             e.printStackTrace();
@@ -157,17 +217,50 @@ public class NationsPlusEconomy extends JavaPlugin {
         }
 
       }
-    }, 20 * 60 * 60);
+    }, 20 * 10);
   }
 
   public void onDisable() {
     LOGGER.info("nationsplus-economy disabled");
   }
 
+  public void payOffLoans(UUID playerId, float amountToPay, float totalAmountToPay, int loanId,
+      int paymentsLeft, int interestToPay, String bankName) throws SQLException {
+
+    // get the player
+    Player player = Bukkit.getPlayer(playerId);
+    // log player name
+    String playerName = player.getName();
+    System.out.println(playerName);
+
+    sqlHelper.update(
+        "update bank_loan set amount_paid = amount_paid + ?, payments_left = payments_left - 1 where id = ?;",
+        amountToPay, loanId);
+    // add the money to the banks balance
+    sqlHelper.update("update bank set balance = balance + ? where bank_name = ?;", totalAmountToPay, bankName);
+    // check if loan is paid
+    if (paymentsLeft - 1 <= 0) {
+      sqlHelper.update("update bank_loan set active = false where id = ?;", loanId);
+
+      // send message to player
+
+      if (player != null) {
+        player.sendMessage(NationsPlusEconomy.bankPrefix + "§eYour loan has been paid off! ");
+      }
+    }
+
+    if (player != null) {
+      player.sendMessage(
+          NationsPlusEconomy.bankPrefix + "§eYou have paid §a" + dollarFormat.format(interestToPay)
+              + "§e in interest and §a" + dollarFormat.format(amountToPay)
+              + "§e in loan payments! §c-" + dollarFormat.format(totalAmountToPay));
+    }
+
+  }
+
   public void loadConfig() {
     getConfig().options().copyDefaults(true);
     saveConfig();
     config = getConfig();
-
   }
 }

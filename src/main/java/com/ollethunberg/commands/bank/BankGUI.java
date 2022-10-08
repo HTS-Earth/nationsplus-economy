@@ -74,10 +74,14 @@ public class BankGUI extends GUIManager implements Listener {
         // chest with text "Deposit"
         ItemStack depositItem = this.createGuiItem(Material.CHEST, "§6Deposit money", "deposit",
                 "§f> §7Click to deposit money");
+        // chest with text "Withdraw"
+        ItemStack withdrawItem = this.createGuiItem(Material.CHEST, "§6Withdraw money", "withdraw",
+                "§f> §7Click to withdraw money");
 
-        bankInventory.setItem(0, bankBalanceItem);
-        bankInventory.setItem(1, viewLoansItem);
-        bankInventory.setItem(2, depositItem);
+        bankInventory.setItem(7, bankBalanceItem);
+        bankInventory.setItem(0, viewLoansItem);
+        bankInventory.setItem(1, depositItem);
+        bankInventory.setItem(2, withdrawItem);
         bankInventory.setItem(8, bankNameItem);
 
     }
@@ -163,9 +167,9 @@ public class BankGUI extends GUIManager implements Listener {
                 // get the identifier of the item, last line of lore
                 String identifier = this.getIdentifier(clickedItem);
 
-                if (identifier.equals("deposit")) {
+                if (identifier.equals("deposit") || identifier.equals("withdraw")) {
                     player.closeInventory();
-                    this.bankDepositOrWithdraw((Player) e.getWhoClicked(), "deposit");
+                    this.bankDepositOrWithdraw((Player) e.getWhoClicked(), identifier);
                 } else if (identifier.equals("view_loans")) {
                     player.performCommand("loans");
                     player.closeInventory();

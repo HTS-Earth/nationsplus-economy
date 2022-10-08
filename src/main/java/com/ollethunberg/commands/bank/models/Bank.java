@@ -1,4 +1,4 @@
-package com.ollethunberg.commands.bank.classes;
+package com.ollethunberg.commands.bank.models;
 
 class Bank {
     public String bank_name;

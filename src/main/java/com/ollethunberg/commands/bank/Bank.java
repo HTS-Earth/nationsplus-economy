@@ -16,6 +16,10 @@ public class Bank extends WalletBalanceHelper {
         bankGUI = new BankGUI();
     }
 
+    public void openDepositGUI(Player player) throws SQLException, Error {
+        bankGUI.bankDeposit(player);
+    }
+
     // Create bank command
     // the cost of creating a bank is $1000
     // the bank is created with a balance of $0

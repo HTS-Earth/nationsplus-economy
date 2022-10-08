@@ -67,8 +67,10 @@ public class BankHandler implements CommandExecutor {
                         break;
                     }
                     case "DEPOSIT": {
-                        if (args.length == 1)
-                            throw new Error("You need to provide an amount! §r§e/bank deposit <amount>");
+                        if (args.length == 1) {
+                            bank.openDepositGUI(player);
+                            break;
+                        }
                         float amount = Float.parseFloat(args[1]);
                         bank.deposit(player, amount);
                         break;

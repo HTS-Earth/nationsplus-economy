@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -61,6 +62,10 @@ public class GUIManager extends WalletBalanceHelper {
             return "";
         }
 
+    }
+
+    protected void handleError(Player player, Error error) {
+        player.sendMessage("§r[§4§lERROR§r]§c " + error.getMessage());
     }
 
 }

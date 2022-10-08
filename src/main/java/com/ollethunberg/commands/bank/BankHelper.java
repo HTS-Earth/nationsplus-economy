@@ -5,8 +5,8 @@ import java.sql.SQLException;
 
 import org.bukkit.entity.Player;
 
-import com.ollethunberg.commands.bank.classes.PlayerBankAccount;
-import com.ollethunberg.commands.bank.classes.PlayerBankInfo;
+import com.ollethunberg.commands.bank.models.PlayerBankAccount;
+import com.ollethunberg.commands.bank.models.PlayerBankInfo;
 import com.ollethunberg.database.DBPlayer;
 import com.ollethunberg.lib.SQLHelper;
 

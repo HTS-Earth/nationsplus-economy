@@ -1,4 +1,4 @@
-package com.ollethunberg.commands.bank.classes;
+package com.ollethunberg.commands.bank.models;
 
 public class PlayerBankInfo extends Bank {
     public float customers_balance;

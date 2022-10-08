@@ -17,7 +17,11 @@ public class Bank extends WalletBalanceHelper {
     }
 
     public void openDepositGUI(Player player) throws SQLException, Error {
-        bankGUI.bankDeposit(player);
+        bankGUI.bankDepositOrWithdraw(player, "deposit");
+    }
+
+    public void openWithdrawGUI(Player player) throws SQLException, Error {
+        bankGUI.bankDepositOrWithdraw(player, "withdraw");
     }
 
     // Create bank command

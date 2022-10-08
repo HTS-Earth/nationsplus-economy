@@ -31,6 +31,8 @@ public class BankGUI extends GUIManager implements Listener {
         GUITitles.put("bank", "§2Bank");
         GUITitles.put("bank_deposit",
                 "§2Amount to deposit");
+        GUITitles.put("bank_withdraw",
+                "§2Amount to withdraw");
         /* Initialize BankHelper */
         bankHelper = new BankHelper();
         balanceHelper = new BalanceHelper();
@@ -80,20 +82,26 @@ public class BankGUI extends GUIManager implements Listener {
 
     }
 
-    public void bankDeposit(Player player) throws SQLException, Error {
+    public void bankDepositOrWithdraw(Player player, String action) throws SQLException, Error {
 
         /* Get bank account */
         PlayerBankAccount playerBankAccount = bankHelper.getPlayerBankAccount(player);
 
         Balance balance = balanceHelper.getBalanceFromPlayer(player);
 
-        bankInventory = Bukkit.createInventory(null, rowsToSize(1), GUITitles.get("bank_deposit"));
+        bankInventory = Bukkit.createInventory(null, rowsToSize(1),
+                action.equals("deposit") ? GUITitles.get("bank_deposit") : GUITitles.get("bank_withdraw"));
 
-        initializeBankDepositGUIItems(playerBankAccount, balance);
+        initializeBankDepositOrWithdrawGUIItems(playerBankAccount, balance, action);
         player.openInventory(bankInventory);
     }
 
-    public void initializeBankDepositGUIItems(PlayerBankAccount playerBankAccount, Balance playerBalance) {
+    public void initializeBankDepositOrWithdrawGUIItems(PlayerBankAccount playerBankAccount, Balance playerBalance,
+            String action) {
+        if (!action.equals("deposit") && !action.equals("withdraw")) {
+            throw new Error("Action must be either deposit or withdraw");
+        }
+        String actionCapitalized = action.equals("deposit") ? "Deposit" : "Withdraw";
         // Gold bar item for the bank balance and player balance, same item, slot 8
         ItemStack bankBalanceItem = this.createGuiItem(Material.DIAMOND, "§aYour bank balance",
                 "balance",
@@ -104,35 +112,37 @@ public class BankGUI extends GUIManager implements Listener {
         bankInventory.setItem(8, bankBalanceItem);
         bankInventory.setItem(7, playerBalanceItem);
 
-        // Paper with text "Deposit 100"
-        ItemStack deposit100Item = this.createGuiItem(Material.PAPER, "§6Deposit §r§a$100", "deposit_100",
-                "§f> §7Click to deposit §a$100");
-        bankInventory.setItem(0, deposit100Item);
+        // Paper with text "<Action> 100"
+        ItemStack item100 = this.createGuiItem(Material.PAPER, "§6" + actionCapitalized + " §r§a$100", action + "_100",
+                "§f> §7Click to " + action + " §a$100");
+        bankInventory.setItem(0, item100);
 
-        // Paper with text "Deposit 250"
-        ItemStack deposit250Item = this.createGuiItem(Material.PAPER, "§6Deposit §r§a$250", "deposit_250",
-                "§f> §7Click to deposit §a$250");
-        bankInventory.setItem(1, deposit250Item);
+        // Paper with text "<Action> 250"
+        ItemStack item250 = this.createGuiItem(Material.PAPER, "§6" + actionCapitalized + " §r§a$250", action + "_250",
+                "§f> §7Click to " + action + " §a$250");
 
-        // Paper with text "Deposit 500"
+        bankInventory.setItem(1, item250);
 
-        ItemStack deposit500Item = this.createGuiItem(Material.PAPER, "§6Deposit §r§a$500", "deposit_500",
-                "§f> §7Click to deposit §a$500");
-        bankInventory.setItem(2, deposit500Item);
+        // Paper with text "<Action> 500"
+        ItemStack item500 = this.createGuiItem(Material.PAPER, "§6" + actionCapitalized + " §r§a$500", action + "_500",
+                "§f> §7Click to " + action + " §a$500");
 
-        // Paper with text "Deposit 1000"
+        bankInventory.setItem(2, item500);
 
-        ItemStack deposit1000Item = this.createGuiItem(Material.PAPER, "§6Deposit §r§a$1000", "deposit_1000",
-                "§f> §7Click to deposit §a$1000");
+        // Paper with text "<Action> 1000"
 
-        bankInventory.setItem(3, deposit1000Item);
+        ItemStack item1000 = this.createGuiItem(Material.PAPER, "§6" + actionCapitalized + " §r§a$1000",
+                action + "_1000",
+                "§f> §7Click to " + action + " §a$1000");
 
-        // Paper with text "Deposit 2500"
+        bankInventory.setItem(3, item1000);
 
-        ItemStack deposit2500Item = this.createGuiItem(Material.PAPER, "§6Deposit §r§a$2500", "deposit_2500",
-                "§f> §7Click to deposit §a$2500");
+        // Paper with text "<Action> 2500"
+        ItemStack item2500 = this.createGuiItem(Material.PAPER, "§6" + actionCapitalized + " §r§a$2500",
+                action + "_2500",
+                "§f> §7Click to " + action + " §a$2500");
 
-        bankInventory.setItem(4, deposit2500Item);
+        bankInventory.setItem(4, item2500);
 
     }
 
@@ -155,12 +165,12 @@ public class BankGUI extends GUIManager implements Listener {
 
                 if (identifier.equals("deposit")) {
                     player.closeInventory();
-                    this.bankDeposit((Player) e.getWhoClicked());
+                    this.bankDepositOrWithdraw((Player) e.getWhoClicked(), "deposit");
                 } else if (identifier.equals("view_loans")) {
                     player.performCommand("loans");
                     player.closeInventory();
                 }
-            } else if (title.equals(GUITitles.get("bank_deposit"))) {
+            } else if (title.equals(GUITitles.get("bank_deposit")) || title.equals(GUITitles.get("bank_withdraw"))) {
                 e.setCancelled(true);
                 final ItemStack clickedItem = e.getCurrentItem();
                 // verify current item is not null
@@ -169,12 +179,14 @@ public class BankGUI extends GUIManager implements Listener {
 
                 // get the identifier of the item, last line of lore
                 String identifier = this.getIdentifier(clickedItem);
-                if (!identifier.startsWith("deposit_"))
+                if (!identifier.startsWith("deposit_") && !identifier.startsWith("withdraw_"))
                     return;
 
                 // make the player send /loans command
-                player.performCommand("bank deposit " + identifier.split("_")[1]);
-                player.closeInventory();
+                player.performCommand((identifier.startsWith("deposit_") ? "bank deposit " : "bank withdraw ")
+                        + identifier.split("_")[1]);
+                // TODO: UPDATE GUI ITEMS for the balance and player balance
+
             }
         } catch (Error error) {
             handleError(player, error);

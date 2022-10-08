@@ -46,16 +46,21 @@ public class GUIManager extends WalletBalanceHelper {
     }
 
     protected static String convertToInvisibleString(String s) {
-        System.out.println("GUIManager.convertToInvisibleString() " + s);
-        String hidden = "";
+        return ChatColor.BLACK + s;
+    };
 
-        for (char c : s.toCharArray())
-            hidden += ChatColor.COLOR_CHAR + "" + c;
-        return hidden;
-    }
+    protected String getIdentifier(ItemStack item) {
+        try {
+            //
+            List<String> lore = item.getItemMeta().getLore();
+            String identifier = lore.get(lore.size() - 1);
 
-    protected static String convertFromInvisibleString(String s) {
-        return s.replaceAll("(?i)" + ChatColor.COLOR_CHAR, "");
+            identifier = ChatColor.stripColor(identifier);
+            return identifier;
+        } catch (IndexOutOfBoundsException e) {
+            return "";
+        }
+
     }
 
 }

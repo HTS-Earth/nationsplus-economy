@@ -106,27 +106,6 @@ public class Bank extends WalletBalanceHelper {
 
     public void bankAccount(Player player) throws SQLException {
         bankGUI.bankAccount(player);
-        // get the players balance from the bank he is currently in
-        ResultSet bankResultSet = query(
-                "SELECT ba.*, b.balance as bank_balance, b.saving_interest from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name where LOWER(ba.player_id) = LOWER(?)",
-                player.getUniqueId().toString());
-
-        if (bankResultSet.next()) {
-            player.sendMessage(NationsPlusEconomy.bankPrefix + "§eYour balance in §6[§r"
-                    + bankResultSet.getString("bank_name") + "§6]§r is §a$"
-                    + bankResultSet.getFloat("balance") + "§r!");
-
-            player.sendMessage(NationsPlusEconomy.bankPrefix + "§eThe bank's saving interest is §a"
-                    + bankResultSet.getFloat("saving_interest") * 100
-                    + "%§r!");
-            // warn if the bank is in danger of going bankrupt
-            if (bankResultSet.getFloat("bank_balance") / bankResultSet.getFloat("balance") < 4) {
-                player.sendMessage(NationsPlusEconomy.bankPrefix + "§cThe bank is in danger of going bankrupt!");
-            }
-
-        } else {
-            player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYou don't have a bank account!");
-        }
     }
 
     public void openBankAccount(Player player, String bankName) throws SQLException {

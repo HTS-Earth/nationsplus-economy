@@ -64,9 +64,9 @@ public class BankGUI extends GUIManager implements Listener {
         ItemStack viewLoansItem = this.createGuiItem(Material.PAPER, "§r§l§aView Loans", "view_loans",
                 "§7Click to view your loans");
 
-        bankInventory.setItem(0, bankNameItem);
-        bankInventory.setItem(1, bankBalanceItem);
-        bankInventory.setItem(2, viewLoansItem);
+        bankInventory.setItem(0, bankBalanceItem);
+        bankInventory.setItem(1, viewLoansItem);
+        bankInventory.setItem(8, bankNameItem);
 
     }
 
@@ -91,18 +91,18 @@ public class BankGUI extends GUIManager implements Listener {
             // verify current item is not null
             if (clickedItem == null || clickedItem.getType() == Material.AIR)
                 return;
-            // get the identifier of the item
-            String identifier = convertFromInvisibleString(clickedItem.getItemMeta().getLore().get(1));
+
+            // get the identifier of the item, last line of lore
+            String identifier = this.getIdentifier(clickedItem);
+            if (!identifier.equals("view_loans"))
+                return;
+
             // get the player
             Player player = (Player) e.getWhoClicked();
-            // check the identifier
-            switch (identifier) {
-                case "view_loans":
-                    player.sendMessage(identifier);
-                    break;
-                default:
-                    break;
-            }
+
+            // make the player send /loans command
+            player.performCommand("loans");
+            player.closeInventory();
 
         }
     }

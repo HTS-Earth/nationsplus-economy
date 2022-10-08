@@ -107,12 +107,12 @@ public class BankGUI extends GUIManager implements Listener {
         }
         String actionCapitalized = action.equals("deposit") ? "Deposit" : "Withdraw";
         // Gold bar item for the bank balance and player balance, same item, slot 8
-        ItemStack bankBalanceItem = this.createGuiItem(Material.DIAMOND, "§aYour bank balance",
+        ItemStack bankBalanceItem = this.createGuiItem(Material.DIAMOND, "§6Your bank balance",
                 "balance",
-                "§r§6" + NationsPlusEconomy.dollarFormat.format(playerBankAccount.balance));
-        ItemStack playerBalanceItem = this.createGuiItem(Material.GOLD_INGOT, "§aYour wallet balance",
+                "§a" + NationsPlusEconomy.dollarFormat.format(playerBankAccount.balance));
+        ItemStack playerBalanceItem = this.createGuiItem(Material.GOLD_INGOT, "§6Your wallet balance",
                 "balance",
-                "§r§6" + NationsPlusEconomy.dollarFormat.format(playerBalance.balance));
+                "§a" + NationsPlusEconomy.dollarFormat.format(playerBalance.balance));
         bankInventory.setItem(8, bankBalanceItem);
         bankInventory.setItem(7, playerBalanceItem);
 

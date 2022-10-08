@@ -1,6 +1,5 @@
 package com.ollethunberg.commands.bankManager;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -10,9 +9,6 @@ import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class BankManager extends WalletBalanceHelper {
-    public BankManager(Connection conn) {
-        super(conn);
-    }
 
     public void setInterest(Player executor, Float amount) throws SQLException {
 

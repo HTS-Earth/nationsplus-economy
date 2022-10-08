@@ -1,20 +1,17 @@
 package com.ollethunberg.commands.balance;
 
-import java.sql.Connection;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class BalanceHandler implements CommandExecutor {
-    Connection connection;
 
     Balance balance;
 
-    public BalanceHandler(Connection connection) {
-        this.connection = connection;
-        balance = new Balance(connection);
+    public BalanceHandler() {
+
+        balance = new Balance();
     }
 
     @Override

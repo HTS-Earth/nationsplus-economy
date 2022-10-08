@@ -1,17 +1,20 @@
 package com.ollethunberg.commands.bank;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.interfaces.GUIManager;
+import com.ollethunberg.lib.ColorHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class Bank extends WalletBalanceHelper {
-    public Bank(Connection _connection) {
-        super(_connection);
+    GUIManager guiManager;
+
+    public Bank() {
+        guiManager = new GUIManager();
     }
 
     // Create bank command
@@ -93,7 +96,7 @@ public class Bank extends WalletBalanceHelper {
             // of all customers
             Float safetyRating = banksResultSet.getFloat("balance")
                     / banksResultSet.getFloat("customers_balance");
-            player.sendMessage("§eSafety-rating§r: " + colorFromPercentageValue(safetyRating)
+            player.sendMessage("§eSafety-rating§r: " + ColorHelper.getColorOfPercentage(safetyRating)
                     + safetyRating * 100
                     + "%§r");
 
@@ -104,22 +107,8 @@ public class Bank extends WalletBalanceHelper {
 
     }
 
-    public String colorFromPercentageValue(float value) {
-        if (value >= 0.8) {
-            return "§a";
-        } else if (value >= 0.6) {
-            return "§e";
-        } else if (value >= 0.4) {
-            return "§6";
-        } else if (value >= 0.2) {
-            return "§c";
-        } else {
-            return "§4";
-        }
-
-    }
-
     public void bankAccount(Player player) throws SQLException {
+        guiManager.bankGUI(player);
         // get the players balance from the bank he is currently in
         ResultSet bankResultSet = query(
                 "SELECT ba.*, b.balance as bank_balance, b.saving_interest from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name where LOWER(ba.player_id) = LOWER(?)",

@@ -1,15 +1,11 @@
 package com.ollethunberg.utils;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.ollethunberg.lib.SQLHelper;
 
 public class WalletBalanceHelper extends SQLHelper {
-    public WalletBalanceHelper(Connection conn) {
-        super(conn);
-    }
 
     public float addBalancePlayer(String uid, float amount) throws SQLException, Error {
         // get the player id and check their balance.

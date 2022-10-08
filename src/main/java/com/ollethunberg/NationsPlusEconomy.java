@@ -1,22 +1,29 @@
 package com.ollethunberg;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Logger;
-import org.bukkit.plugin.java.JavaPlugin;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.postgresql.Driver;
 
 import com.ollethunberg.commands.balance.BalanceHandler;
 import com.ollethunberg.commands.bank.BankHandler;
+import com.ollethunberg.commands.bank.BanksHandler;
 import com.ollethunberg.commands.bankManager.BankManagerHandler;
+import com.ollethunberg.commands.loan.LoanHandler;
+import com.ollethunberg.commands.pay.PayHandler;
+import com.ollethunberg.interfaces.GUIManager;
 import com.ollethunberg.lib.SQLHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
-
-import java.sql.*;
-import java.text.NumberFormat;
 
 /*
  * nationsplus-economy java plugin
@@ -31,15 +38,18 @@ public class NationsPlusEconomy extends JavaPlugin {
   public static NumberFormat dollarFormat = NumberFormat.getCurrencyInstance(usa);
 
   public static final Logger LOGGER = Logger.getLogger("nationsplus-economy");
-  private SQLHelper sqlHelper;
+
   public Connection connection;
 
   /* Command handlers */
-  private CommandHandler commandHandler;
+
   private BalanceHandler balanceHandler;
   private BankHandler bankHandler;
   private BankManagerHandler bankManagerHandler;
-
+  private LoanHandler loanHandler;
+  private PayHandler payHandler;
+  private BanksHandler banksHandler;
+  private GUIManager guiManager;
   public Configuration config;
   private WalletBalanceHelper walletBalanceHelper;
 
@@ -55,22 +65,28 @@ public class NationsPlusEconomy extends JavaPlugin {
           config.getString("database.username"), config.getString("database.password"));
 
       getLogger().info(connection.toString() + " connected to DB successfully!");
-      sqlHelper = new SQLHelper(connection);
-      walletBalanceHelper = new WalletBalanceHelper(connection);
+      SQLHelper.conn = connection;
+      walletBalanceHelper = new WalletBalanceHelper();
       // Register command handlers
-      commandHandler = new CommandHandler(connection);
-      balanceHandler = new BalanceHandler(connection);
-      bankHandler = new BankHandler(connection);
-      bankManagerHandler = new BankManagerHandler(connection);
-      // Register events listeners that needs a SQL connection
+      banksHandler = new BanksHandler();
+      balanceHandler = new BalanceHandler();
+      bankHandler = new BankHandler();
+      bankManagerHandler = new BankManagerHandler();
+      loanHandler = new LoanHandler();
+      payHandler = new PayHandler();
+      guiManager = new GUIManager();
 
       // Register commands
       getCommand("balance").setExecutor(balanceHandler);
       getCommand("bank").setExecutor(bankHandler);
       getCommand("bankmanager").setExecutor(bankManagerHandler);
-      getCommand("pay").setExecutor(commandHandler);
-      getCommand("banks").setExecutor(commandHandler);
-      getCommand("loans").setExecutor(commandHandler);
+      getCommand("loans").setExecutor(loanHandler);
+      getCommand("pay").setExecutor(payHandler);
+      getCommand("banks").setExecutor(banksHandler);
+
+      /* Register event listeners */
+      getServer().getPluginManager().registerEvents(guiManager, this);
+
       this.runTimer();
     } catch (SQLException e) {
       System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
@@ -90,12 +106,12 @@ public class NationsPlusEconomy extends JavaPlugin {
 
         String updateSQL = "update player as p set balance = p.balance + (100 - (select tax from nation as n where n.name = p.nation ));";
         try {
-          sqlHelper.update(updateSQL);
+          SQLHelper.update(updateSQL);
           // send message to all players
           Bukkit.broadcastMessage(
               NationsPlusEconomy.walletPrefix + "§eYou have been given §a$100§e for being a loyal citizen! ");
           // inform each player about how much of the tax they have paid
-          ResultSet playerResultSet = sqlHelper.query(
+          ResultSet playerResultSet = SQLHelper.query(
               "select p.player_name, n.tax, p.balance, n.name, p.uid from player as p inner join nation as n on n.name = p.nation where n.tax > 0;");
 
           while (playerResultSet.next()) {
@@ -103,7 +119,7 @@ public class NationsPlusEconomy extends JavaPlugin {
             String playerName = playerResultSet.getString("player_name");
             int tax = playerResultSet.getInt("tax");
             if (playerResultSet.getString("name") != null) {
-              sqlHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
+              SQLHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
                   playerResultSet.getString("name"));
             }
             if (playerName == null) {
@@ -126,7 +142,7 @@ public class NationsPlusEconomy extends JavaPlugin {
           // banks and loans clock
           try {
             String activeLoans = "select * from bank_loan where active = true AND amount_paid < amount_total;";
-            ResultSet activeLoansResult = sqlHelper.query(activeLoans);
+            ResultSet activeLoansResult = SQLHelper.query(activeLoans);
             while (activeLoansResult.next()) {
               int loanId = activeLoansResult.getInt("id");
               // int amountPaid = activeLoansResult.getInt("amount_paid");
@@ -140,7 +156,7 @@ public class NationsPlusEconomy extends JavaPlugin {
               String player_id = activeLoansResult.getString("player_id");
               String bankName = activeLoansResult.getString("bank_name");
               // check if player has enough money
-              ResultSet playerBankBalance = sqlHelper.query("select balance from bank_account where player_id= ?;",
+              ResultSet playerBankBalance = SQLHelper.query("select balance from bank_account where player_id= ?;",
                   player_id);
               Player player = Bukkit.getPlayer(UUID.fromString(player_id));
               // tell the player loan information
@@ -154,7 +170,7 @@ public class NationsPlusEconomy extends JavaPlugin {
                 float balance = playerBankBalance.getFloat("balance");
                 if (balance >= totalAmountToPay) {
                   // pay the loan
-                  sqlHelper.update("update bank_account set balance = balance - ? where player_id = ?;",
+                  SQLHelper.update("update bank_account set balance = balance - ? where player_id = ?;",
                       totalAmountToPay,
                       player_id);
                   payOffLoans(UUID.fromString(player_id), amountToPay, totalAmountToPay, loanId, payments_left,
@@ -188,7 +204,7 @@ public class NationsPlusEconomy extends JavaPlugin {
           // bank account interest
           try {
             String bankAccounts = "select ba.player_id, ba.balance,b.saving_interest, b.bank_name from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name;";
-            ResultSet bankAccountsResult = sqlHelper.query(bankAccounts);
+            ResultSet bankAccountsResult = SQLHelper.query(bankAccounts);
             while (bankAccountsResult.next()) {
               String player_id = bankAccountsResult.getString("player_id");
               float balance = bankAccountsResult.getFloat("balance");
@@ -202,7 +218,7 @@ public class NationsPlusEconomy extends JavaPlugin {
                         + "§e in saving interest from §6[§r"
                         + bankName + "§6]§r");
               }
-              sqlHelper.update("update bank_account set balance = balance + ? where player_id = ?;", interestToGet,
+              SQLHelper.update("update bank_account set balance = balance + ? where player_id = ?;", interestToGet,
                   player_id);
             }
           } catch (Exception e) {
@@ -217,7 +233,7 @@ public class NationsPlusEconomy extends JavaPlugin {
         }
 
       }
-    }, 20 * 10);
+    }, 20 * 10 * 10);
   }
 
   public void onDisable() {
@@ -233,14 +249,14 @@ public class NationsPlusEconomy extends JavaPlugin {
     String playerName = player.getName();
     System.out.println(playerName);
 
-    sqlHelper.update(
+    SQLHelper.update(
         "update bank_loan set amount_paid = amount_paid + ?, payments_left = payments_left - 1 where id = ?;",
         amountToPay, loanId);
     // add the money to the banks balance
-    sqlHelper.update("update bank set balance = balance + ? where bank_name = ?;", totalAmountToPay, bankName);
+    SQLHelper.update("update bank set balance = balance + ? where bank_name = ?;", totalAmountToPay, bankName);
     // check if loan is paid
     if (paymentsLeft - 1 <= 0) {
-      sqlHelper.update("update bank_loan set active = false where id = ?;", loanId);
+      SQLHelper.update("update bank_loan set active = false where id = ?;", loanId);
 
       // send message to player
 

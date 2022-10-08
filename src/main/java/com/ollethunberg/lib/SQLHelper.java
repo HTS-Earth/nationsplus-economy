@@ -11,14 +11,10 @@ import org.bukkit.plugin.Plugin;
 import com.ollethunberg.NationsPlusEconomy;
 
 public class SQLHelper {
-    private Connection conn;
+    public static Connection conn;
     Plugin plugin = NationsPlusEconomy.getPlugin(NationsPlusEconomy.class);
 
-    public SQLHelper(Connection connection) {
-        conn = connection;
-    }
-
-    public Connection getConnection() {
+    public static Connection getConnection() {
         return conn;
     }
 
@@ -33,7 +29,7 @@ public class SQLHelper {
         public void onQueryDone() throws SQLException;
     }
 
-    public void closeConnection() {
+    public static void closeConnection() {
         try {
             conn.close();
         } catch (SQLException e) {
@@ -57,7 +53,7 @@ public class SQLHelper {
 
     }
 
-    public ResultSet query(String query, Object... args) throws SQLException {
+    public static ResultSet query(String query, Object... args) throws SQLException {
         PreparedStatement preparedStatement = conn.prepareStatement(query);
         for (int i = 0; i < args.length; i++) {
             preparedStatement.setObject(i + 1, args[i]);
@@ -66,7 +62,7 @@ public class SQLHelper {
         return preparedStatement.getResultSet();
     }
 
-    public void update(String query, Object... args) throws SQLException {
+    public static void update(String query, Object... args) throws SQLException {
         PreparedStatement preparedStatement = conn.prepareStatement(query);
         for (int i = 0; i < args.length; i++) {
             preparedStatement.setObject(i + 1, args[i]);

@@ -1,6 +1,5 @@
 package com.ollethunberg.commands.bankManager;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.bukkit.command.Command;
@@ -11,13 +10,10 @@ import org.bukkit.entity.Player;
 import com.ollethunberg.NationsPlusEconomy;
 
 public class BankManagerHandler implements CommandExecutor {
-    Connection connection;
-
     BankManager bankManager;
 
-    public BankManagerHandler(Connection connection) {
-        this.connection = connection;
-        bankManager = new BankManager(connection);
+    public BankManagerHandler() {
+        bankManager = new BankManager();
     }
 
     @Override

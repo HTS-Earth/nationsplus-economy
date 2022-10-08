@@ -24,7 +24,7 @@ public class BankHelper extends SQLHelper {
             playerBankInfo.balance = bankInfo.getFloat("balance");
             playerBankInfo.customers_balance = bankInfo.getFloat("customers_balance");
             playerBankInfo.customers = bankInfo.getInt("customers");
-            playerBankInfo.safety_rating = (playerBankInfo.balance / playerBankInfo.customers_balance) * 100;
+            playerBankInfo.safety_rating = (playerBankInfo.balance / playerBankInfo.customers_balance);
         }
         return playerBankInfo;
     }

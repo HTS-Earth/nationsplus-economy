@@ -7,9 +7,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.ollethunberg.lib.CommandHandlerClass;
+import com.ollethunberg.lib.CommandHandlerInterface;
 
-public class LoanHandler implements CommandExecutor, CommandHandlerClass {
+public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
 
     Loan loan;
 

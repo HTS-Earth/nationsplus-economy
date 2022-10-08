@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import com.ollethunberg.commands.bank.classes.PlayerBankAccount;
 import com.ollethunberg.commands.bank.classes.PlayerBankInfo;
+import com.ollethunberg.database.DBPlayer;
 import com.ollethunberg.lib.SQLHelper;
 
 public class BankHelper extends SQLHelper {
@@ -41,6 +42,23 @@ public class BankHelper extends SQLHelper {
             playerBankAccount.balance = bankAccount.getFloat("balance");
         }
         return playerBankAccount;
+    }
+
+    public DBPlayer getBankOwner(String bank_name) throws SQLException {
+        ResultSet bankOwner = query(
+                "SELECT p.* from bank as b inner join player as p on p.uid=b.owner where b.bank_name=?",
+                bank_name);
+        // serialize bank info
+        DBPlayer dbPlayer = new DBPlayer();
+        if (bankOwner.next()) {
+            dbPlayer.uid = bankOwner.getString("uid");
+            dbPlayer.player_name = bankOwner.getString("player_name");
+            dbPlayer.balance = bankOwner.getFloat("balance");
+            dbPlayer.nation = bankOwner.getString("nation");
+            dbPlayer.kills = bankOwner.getInt("kills");
+            dbPlayer.deaths = bankOwner.getInt("deaths");
+        }
+        return dbPlayer;
     }
 
 }

@@ -7,9 +7,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.ollethunberg.lib.CommandHandlerClass;
+import com.ollethunberg.lib.CommandHandlerInterface;
 
-public class PayHandler implements CommandExecutor, CommandHandlerClass {
+public class PayHandler implements CommandExecutor, CommandHandlerInterface {
 
     Pay pay;
 

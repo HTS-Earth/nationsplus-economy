@@ -16,12 +16,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.postgresql.Driver;
 
 import com.ollethunberg.commands.balance.BalanceHandler;
+import com.ollethunberg.commands.bank.BankGUI;
 import com.ollethunberg.commands.bank.BankHandler;
 import com.ollethunberg.commands.bank.BanksHandler;
 import com.ollethunberg.commands.bankManager.BankManagerHandler;
 import com.ollethunberg.commands.loan.LoanHandler;
 import com.ollethunberg.commands.pay.PayHandler;
-import com.ollethunberg.interfaces.GUIManager;
 import com.ollethunberg.lib.SQLHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
@@ -49,7 +49,7 @@ public class NationsPlusEconomy extends JavaPlugin {
   private LoanHandler loanHandler;
   private PayHandler payHandler;
   private BanksHandler banksHandler;
-  private GUIManager guiManager;
+  private BankGUI bankGUI;
   public Configuration config;
   private WalletBalanceHelper walletBalanceHelper;
 
@@ -74,7 +74,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       bankManagerHandler = new BankManagerHandler();
       loanHandler = new LoanHandler();
       payHandler = new PayHandler();
-      guiManager = new GUIManager();
+      bankGUI = new BankGUI();
 
       // Register commands
       getCommand("balance").setExecutor(balanceHandler);
@@ -85,7 +85,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       getCommand("banks").setExecutor(banksHandler);
 
       /* Register event listeners */
-      getServer().getPluginManager().registerEvents(guiManager, this);
+      getServer().getPluginManager().registerEvents(bankGUI, this);
 
       this.runTimer();
     } catch (SQLException e) {

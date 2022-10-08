@@ -6,15 +6,14 @@ import java.sql.SQLException;
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.NationsPlusEconomy;
-import com.ollethunberg.interfaces.GUIManager;
 import com.ollethunberg.lib.ColorHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class Bank extends WalletBalanceHelper {
-    GUIManager guiManager;
+    BankGUI bankGUI;
 
     public Bank() {
-        guiManager = new GUIManager();
+        bankGUI = new BankGUI();
     }
 
     // Create bank command
@@ -106,7 +105,7 @@ public class Bank extends WalletBalanceHelper {
     }
 
     public void bankAccount(Player player) throws SQLException {
-        guiManager.bankGUI(player);
+        bankGUI.bankAccount(player);
         // get the players balance from the bank he is currently in
         ResultSet bankResultSet = query(
                 "SELECT ba.*, b.balance as bank_balance, b.saving_interest from bank_account as ba inner join bank as b on b.bank_name=ba.bank_name where LOWER(ba.player_id) = LOWER(?)",

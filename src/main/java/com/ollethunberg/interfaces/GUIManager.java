@@ -65,7 +65,7 @@ public class GUIManager extends WalletBalanceHelper implements Listener {
         ItemStack bankNameItem = this.createGuiItem(Material.NAME_TAG, "§r§l§a" + playerBankInfo.bank_name, "bank_name",
                 "§7Saving interest: §r§l§a" + playerBankInfo.saving_interest * 100 + "%",
                 "§7Bank funds: §r§l§a" + NationsPlusEconomy.dollarFormat.format(playerBankAccount.balance) + "§r§l§a",
-                "§7Bank safety rating: §r§l§a" + ColorHelper.getColorOfPercentage(playerBankInfo.safety_rating) + "%");
+                "§7Bank safety rating: §r§l§a" + ColorHelper.addColorToPercentage(playerBankInfo.safety_rating));
 
         // Gold bar item for the bank balance
         ItemStack bankBalanceItem = this.createGuiItem(Material.GOLD_INGOT, "§aYour bank balance",

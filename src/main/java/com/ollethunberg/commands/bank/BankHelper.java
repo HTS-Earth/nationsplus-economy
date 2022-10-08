@@ -13,7 +13,7 @@ public class BankHelper extends SQLHelper {
 
     public PlayerBankInfo getPlayerBankInfo(Player player) throws SQLException {
         ResultSet bankInfo = query(
-                "SELECT b.*, p.player_name,(SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance, (select count(*) from bank_account where bank_name=b.bank_name) as customers from bank as b inner join player as p on b.owner = p.uid where p.uid=?",
+                "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance, (select count(*) from bank_account where bank_name=b.bank_name) as customers from bank as b inner join bank_account as ba on ba.bank_name = b.bank_name where ba.player_id=?",
                 player.getUniqueId().toString());
         // serialize bank info
         PlayerBankInfo playerBankInfo = new PlayerBankInfo();
@@ -23,7 +23,6 @@ public class BankHelper extends SQLHelper {
             playerBankInfo.saving_interest = bankInfo.getFloat("saving_interest");
             playerBankInfo.balance = bankInfo.getFloat("balance");
             playerBankInfo.customers_balance = bankInfo.getFloat("customers_balance");
-            playerBankInfo.player_name = bankInfo.getString("player_name");
             playerBankInfo.customers = bankInfo.getInt("customers");
             playerBankInfo.safety_rating = (playerBankInfo.balance / playerBankInfo.customers_balance) * 100;
         }

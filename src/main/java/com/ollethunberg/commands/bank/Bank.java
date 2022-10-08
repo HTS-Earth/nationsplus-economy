@@ -96,9 +96,7 @@ public class Bank extends WalletBalanceHelper {
             // of all customers
             Float safetyRating = banksResultSet.getFloat("balance")
                     / banksResultSet.getFloat("customers_balance");
-            player.sendMessage("§eSafety-rating§r: " + ColorHelper.getColorOfPercentage(safetyRating)
-                    + safetyRating * 100
-                    + "%§r");
+            player.sendMessage("§eSafety-rating§r: " + ColorHelper.addColorToPercentage(safetyRating));
 
             player.sendMessage("§eOwner: §6" + banksResultSet.getString("player_name"));
             player.sendMessage("§eCustomers: §a" + banksResultSet.getInt("customers"));

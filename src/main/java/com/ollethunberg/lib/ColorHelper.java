@@ -1,17 +1,19 @@
 package com.ollethunberg.lib;
 
 public class ColorHelper {
-    public static String getColorOfPercentage(float value) {
+    public static String addColorToPercentage(float value) {
+        String color = "";
         if (value >= 0.8) {
-            return "§a";
+            color = "§a";
         } else if (value >= 0.6) {
-            return "§e";
+            color = "§e";
         } else if (value >= 0.4) {
-            return "§6";
+            color = "§6";
         } else if (value >= 0.2) {
-            return "§c";
+            color = "§c";
         } else {
-            return "§4";
+            color = "§4";
         }
+        return color + value + "%";
     }
 }

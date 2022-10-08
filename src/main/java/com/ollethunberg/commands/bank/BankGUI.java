@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -68,16 +67,6 @@ public class BankGUI extends GUIManager implements Listener {
         bankInventory.setItem(1, viewLoansItem);
         bankInventory.setItem(8, bankNameItem);
 
-    }
-
-    @EventHandler()
-    public void onInventoryClick(final InventoryDragEvent e) {
-
-        String title = e.getView().getTitle();
-        //
-        if (title.equals("§2§l$$ §r§a§lBank §r§2§l$$")) {
-            e.setCancelled(true);
-        }
     }
 
     @EventHandler()

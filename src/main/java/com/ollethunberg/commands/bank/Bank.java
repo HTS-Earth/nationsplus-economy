@@ -41,7 +41,7 @@ public class Bank extends WalletBalanceHelper {
                     // create the bank
                     String createBankSQL = "INSERT INTO bank (bank_name, balance, owner, saving_interest) VALUES (?, ?, ?, ? )";
 
-                    update(createBankSQL, bankName, 0, player.getUniqueId().toString(), 0.05);
+                    update(createBankSQL, bankName, 0, player.getUniqueId().toString(), 0.0);
 
                     // subtract the cost of creating the bank from the player's balance
                     addBalancePlayer(player.getUniqueId().toString(), -1000);

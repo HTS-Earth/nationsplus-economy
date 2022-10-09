@@ -106,7 +106,7 @@ public class BankManagerHandler implements CommandExecutor {
         // see requested loans and accept or deny them
         player.sendMessage("§c/bankmanager loans offers" + "§7 - See the requested loans");
         player.sendMessage("§c/bankmanager loans" + "§7 - See active loans");
-        player.sendMessage("§c/bankmanager loans accept [id]" + "§7 - Accept a loan");
-        player.sendMessage("§c/bankmanager loans deny [id]" + "§7 - Deny a loan");
+        player.sendMessage("§c/bankmanager loans offers accept [id]" + "§7 - Accept a loan");
+        player.sendMessage("§c/bankmanager loans offers deny [id]" + "§7 - Deny a loan");
     }
 }

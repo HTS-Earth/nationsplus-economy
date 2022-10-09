@@ -153,9 +153,10 @@ public class NationsPlusEconomy extends JavaPlugin {
               int payments_left = activeLoansResult.getInt("payments_left");
               int payments_total = activeLoansResult.getInt("payments_total");
               int amountTotal = activeLoansResult.getInt("amount_total");
+              int amountPaid = activeLoansResult.getInt("amount_paid");
               float interest = activeLoansResult.getFloat("interest_rate");
-              int interestToPay = (int) Math.round(amountTotal * interest);
               int amountToPay = amountTotal / payments_total;
+              int interestToPay = (int) Math.round((amountTotal - amountPaid) * interest);
               int totalAmountToPay = amountToPay + interestToPay;
               String player_id = activeLoansResult.getString("player_id");
               String bankName = activeLoansResult.getString("bank_name");

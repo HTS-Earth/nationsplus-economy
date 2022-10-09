@@ -1,6 +1,7 @@
 package com.ollethunberg.commands.loan;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -35,6 +36,12 @@ public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
                         this.sendHelpMessage(player);
                         break;
                     }
+                    case "APPLY": {
+
+                        String[] applicationArgs = Arrays.copyOfRange(args, 1, args.length);
+                        player.sendMessage(applicationArgs.toString());
+                        loan.loanApplicationNew(player, applicationArgs);
+                    }
                 }
                 return true;
             } catch (Error e) {
@@ -62,7 +69,8 @@ public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
          */
         player.sendMessage(
                 "Available commands:",
-                "§r§c/loans §r§7Shows all your loans"
+                "§r§c/loans §r§7Shows all your loans",
+                "§c/loan apply <amount> <interest rate> <payments quantity> §7Apply for a loan at your current bank"
 
         );
     }

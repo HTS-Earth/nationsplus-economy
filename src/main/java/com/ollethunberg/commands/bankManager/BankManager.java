@@ -63,7 +63,8 @@ public class BankManager extends WalletBalanceHelper {
                 executor.sendMessage(
                         "§r§ePer hour: §r§a" + NationsPlusEconomy.dollarFormat
                                 .format(loans.getFloat("amount_total") / loans.getInt("payments_total")
-                                        + loans.getFloat("amount_total") * loans.getFloat("interest_rate")));
+                                        + ((loans.getFloat("amount_total") - loans.getFloat("amount_paid"))
+                                                * loans.getFloat("interest_rate"))));
                 executor.sendMessage("§r§a---------------------");
                 amountOfLoans++;
             }

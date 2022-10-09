@@ -57,10 +57,10 @@ public class BankGUI extends GUIManager implements Listener {
         // Bank name
         ItemStack bankNameItem = this.createGuiItem(Material.NAME_TAG, "§r§l§a" + playerBankInfo.bank_name, "bank_name",
                 "§7Saving interest: §r§l§a" + playerBankInfo.saving_interest * 100 + "%",
-                "§7Bank funds: §r§l§a" + NationsPlusEconomy.dollarFormat.format(playerBankAccount.balance) + "§r§l§a",
-                "§7Bank safety rating: §r§l§a" + ColorHelper.addColorToPercentage(playerBankInfo.safety_rating),
-                "§7Bank owner: §r§l§a" + bankOwner.player_name,
-                "§7Bank based in: §r§l§a" + bankOwner.nation);
+                "§7Bank's funds: §r§l§a" + NationsPlusEconomy.dollarFormat.format(playerBankInfo.balance) + "§r§l§a",
+                "§7Safety rating: §r§l§a" + ColorHelper.addColorToPercentage(playerBankInfo.safety_rating),
+                "§7Owner: §r§l§a" + bankOwner.player_name,
+                "§7Based in: §r§l§a" + bankOwner.nation);
 
         // Gold bar item for the bank balance
         ItemStack bankBalanceItem = this.createGuiItem(Material.GOLD_INGOT, "§6Your bank balance",

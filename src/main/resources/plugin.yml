@@ -28,4 +28,4 @@ commands:
   loans:
     description: Lists all the banks
     usage: /<command> <action>
-    aliases: [loans, l]
+    aliases: [loans, l, loan]

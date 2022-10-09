@@ -7,8 +7,10 @@ import org.bukkit.entity.Player;
 
 import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.commands.bank.BankHelper;
+
 import com.ollethunberg.commands.bank.models.PlayerBankInfo;
 import com.ollethunberg.commands.loan.models.DBLoan;
+import com.ollethunberg.database.DBPlayer;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class Loan extends WalletBalanceHelper {
@@ -72,8 +74,16 @@ public class Loan extends WalletBalanceHelper {
                                 throw new Error("Not enough arguments");
 
                         float amount = Float.parseFloat(args[0]);
+                        if (amount < 1)
+                                throw new Error("Amount must be greater than 0");
                         float interest_rate = Float.parseFloat(args[1]) / 100; // convert from user input to float.
+                        if (interest_rate < 0)
+                                throw new Error("You can not set a negative interest rate");
+
                         int payments_quantity = Integer.parseInt(args[2]);
+                        if (payments_quantity < 1)
+                                throw new Error("You can not set a negative amount of payments");
+
                         DBLoan newLoan = new DBLoan();
 
                         newLoan.amount_total = amount;
@@ -86,6 +96,21 @@ public class Loan extends WalletBalanceHelper {
                         newLoan.bank_name = playerBankInfo.bank_name;
 
                         loanHelper.createLoan(newLoan);
+
+                        player.sendMessage(NationsPlusEconomy.loanPrefix
+                                        + "§aLoan application sent! Please wait for approval by the bank's managers.");
+                        // check if the bank manager is online
+                        if (playerBankInfo.owner != null) {
+                                // get the owner player
+                                // get bank owner
+                                DBPlayer owner = bankHelper.getBankOwner(playerBankInfo.bank_name);
+                                Player ownerEntity = plugin.getServer().getPlayer(owner.player_name);
+                                if (owner != null) {
+                                        ownerEntity.sendMessage(NationsPlusEconomy.loanPrefix
+                                                        + "§aYou have a new loan application from §e" + player.getName()
+                                                        + "§a!");
+                                }
+                        }
 
                 } catch (NumberFormatException e) {
                         throw new Error("Invalid number inputs. Please refer to the help command. /loan help");

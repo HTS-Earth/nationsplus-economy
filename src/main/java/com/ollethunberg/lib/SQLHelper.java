@@ -12,7 +12,7 @@ import com.ollethunberg.NationsPlusEconomy;
 
 public class SQLHelper {
     public static Connection conn;
-    Plugin plugin = NationsPlusEconomy.getPlugin(NationsPlusEconomy.class);
+    public Plugin plugin = NationsPlusEconomy.getPlugin(NationsPlusEconomy.class);
 
     public static Connection getConnection() {
         return conn;

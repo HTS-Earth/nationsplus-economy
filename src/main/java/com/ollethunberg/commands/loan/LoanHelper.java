@@ -59,4 +59,11 @@ public class LoanHelper extends SQLHelper {
         return serializeDBLoan(newLoan);
 
     }
+
+    public DBLoan getLoanById(int id) throws SQLException {
+        ResultSet loan = query("SELECT * from bank_loan where id=?", id);
+        if (!loan.next())
+            throw new Error("There is no loan with that id.");
+        return serializeDBLoan(loan);
+    }
 }

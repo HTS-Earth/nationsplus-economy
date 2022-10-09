@@ -6,12 +6,21 @@ import java.sql.SQLException;
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.commands.bank.BankHelper;
+import com.ollethunberg.commands.bank.models.Bank;
+import com.ollethunberg.commands.loan.LoanHelper;
+import com.ollethunberg.commands.loan.models.DBLoan;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class BankManager extends WalletBalanceHelper {
+    LoanHelper loanHelper = new LoanHelper();
+    BankHelper bankHelper = new BankHelper();
 
     public void setInterest(Player executor, Float amount) throws SQLException {
-
+        if (amount < 0) {
+            executor.sendMessage(NationsPlusEconomy.loanPrefix + "§cInterest can't be negative!");
+            return;
+        }
         // get the bank which the owner is in
         ResultSet bank = getBank(executor);
         String bankName = bank.getString("bank_name");
@@ -107,6 +116,21 @@ public class BankManager extends WalletBalanceHelper {
             throw new Error("Offer not found");
         }
 
+    }
+
+    public void acceptLoan(Player player, int id) throws SQLException, Error {
+        // Get the loan from the database
+        DBLoan loanOffer = loanHelper.getLoanById(id);
+        Bank bank = bankHelper.getBank(loanOffer.bank_name);
+
+        // check if the bank has enough money
+        if (bank.balance < loanOffer.amount_total) {
+            player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cThe bank does not have enough money");
+            return;
+        }
+        // Pay out the loan to the player and notifiy them
+
+        updateOfferStatus(player, id, true);
     }
 
 }

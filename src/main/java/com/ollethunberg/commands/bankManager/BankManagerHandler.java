@@ -32,7 +32,9 @@ public class BankManagerHandler implements CommandExecutor {
                             bankManager.getInterest(player);
                             break;
                         } else {
+
                             Float interest = Float.parseFloat(args[1]) / 100;
+
                             bankManager.setInterest(player, interest);
                             break;
                         }
@@ -63,7 +65,9 @@ public class BankManagerHandler implements CommandExecutor {
                                 int id = Integer.parseInt(args[3]);
 
                                 if (loanAction.equalsIgnoreCase("accept")) {
-                                    bankManager.updateOfferStatus(player, id, true);
+
+                                    bankManager.acceptLoan(player, id);
+
                                 } else if (loanAction.equalsIgnoreCase("deny")) {
                                     bankManager.updateOfferStatus(player, id, false);
                                 }

@@ -39,7 +39,7 @@ public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
                     case "APPLY": {
 
                         String[] applicationArgs = Arrays.copyOfRange(args, 1, args.length);
-                        player.sendMessage(applicationArgs.toString());
+
                         loan.loanApplicationNew(player, applicationArgs);
                     }
                 }

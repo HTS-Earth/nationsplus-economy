@@ -12,10 +12,12 @@ import com.ollethunberg.lib.CommandHandlerInterface;
 public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
 
     Loan loan;
+    LoanGUI loanGUI;
 
     public LoanHandler() {
 
         loan = new Loan();
+        loanGUI = new LoanGUI();
     }
 
     @Override
@@ -24,7 +26,7 @@ public class LoanHandler implements CommandExecutor, CommandHandlerInterface {
             Player player = (Player) sender;
             try {
                 if (args.length == 0) {
-                    loan.loans(player);
+                    loanGUI.loans(player);
                     return true;
                 }
                 String action = args[0].toUpperCase();

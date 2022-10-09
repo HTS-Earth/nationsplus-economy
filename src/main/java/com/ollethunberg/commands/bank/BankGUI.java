@@ -171,8 +171,8 @@ public class BankGUI extends GUIManager implements Listener {
                     player.closeInventory();
                     this.bankDepositOrWithdraw((Player) e.getWhoClicked(), identifier);
                 } else if (identifier.equals("view_loans")) {
-                    player.performCommand("loans");
                     player.closeInventory();
+                    player.performCommand("loans");
                 }
             } else if (title.equals(GUITitles.get("bank_deposit")) || title.equals(GUITitles.get("bank_withdraw"))) {
                 e.setCancelled(true);

@@ -122,12 +122,12 @@ public class NationsPlusEconomy extends JavaPlugin {
 
             String playerName = playerResultSet.getString("player_name");
             int tax = playerResultSet.getInt("tax");
+            if (playerName == null) {
+              continue;
+            }
             if (playerResultSet.getString("name") != null) {
               SQLHelper.update("update nation as n set balance = n.balance + ? where n.name = ?;", tax,
                   playerResultSet.getString("name"));
-            }
-            if (playerName == null) {
-              continue;
             }
 
             Player player = Bukkit.getPlayer(playerName);

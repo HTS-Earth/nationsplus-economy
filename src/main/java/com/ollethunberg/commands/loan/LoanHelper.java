@@ -44,6 +44,14 @@ public class LoanHelper extends SQLHelper {
         return dbLoan;
     }
 
+    public List<DBLoan> serializeDBLoans(ResultSet dbData) throws SQLException {
+        List<DBLoan> loans = new ArrayList<DBLoan>();
+        while (dbData.next()) {
+            loans.add(serializeDBLoan(dbData));
+        }
+        return loans;
+    }
+
     public float getCostPerHour(DBLoan loan) {
         return loan.amount_total / loan.payments_total
                 + (loan.amount_total - loan.amount_paid) * loan.interest_rate;
@@ -51,9 +59,9 @@ public class LoanHelper extends SQLHelper {
 
     public DBLoan createLoan(DBLoan loan) throws SQLException {
         // insert the loan to the database
-        String createLoanSQL = "INSERT INTO \"public\".\"bank_loan\" (\"bank_name\", \"player_id\", \"amount_total\", \"amount_paid\", \"interest_rate\", \"accepted\", \"active\", \"payments_left\", \"payments_total\") VALUES (?,?, ?,0, ?, false, false,0, ?) RETURNING *;";
+        String createLoanSQL = "INSERT INTO \"public\".\"bank_loan\" (\"bank_name\", \"player_id\", \"amount_total\", \"amount_paid\", \"interest_rate\", \"accepted\", \"active\", \"payments_left\", \"payments_total\") VALUES (?,?, ?,0, ?, false, false,?, ?) RETURNING *;";
         ResultSet newLoan = query(createLoanSQL, loan.bank_name, loan.player_id, loan.amount_total, loan.interest_rate,
-                loan.payments_total);
+                loan.payments_total, loan.payments_left);
         if (!newLoan.next())
             throw new Error("There was an error creating the loan.");
         return serializeDBLoan(newLoan);

@@ -88,6 +88,7 @@ public class Loan extends WalletBalanceHelper {
 
                         newLoan.amount_total = amount;
                         newLoan.payments_total = payments_quantity;
+                        newLoan.payments_left = payments_quantity;
                         newLoan.interest_rate = interest_rate;
                         newLoan.player_id = player.getUniqueId().toString();
 

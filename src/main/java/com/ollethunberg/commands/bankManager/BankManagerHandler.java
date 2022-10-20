@@ -83,9 +83,6 @@ public class BankManagerHandler implements CommandExecutor {
                     }
                 }
                 return true;
-            } catch (Error e) {
-                player.sendMessage("§r[§4§lERROR§r]§c " + e.getMessage());
-                return true;
             } catch (SQLException e) {
                 player.sendMessage("§cThere was an error while executing the command!");
                 e.printStackTrace();
@@ -93,6 +90,9 @@ public class BankManagerHandler implements CommandExecutor {
                 return true;
             } catch (NumberFormatException e) {
                 player.sendMessage("§r[§4§lNUMBER-ERROR§r]§c Please provide valid numbers!");
+                return true;
+            } catch (Error | Exception e) {
+                player.sendMessage("§r[§4§lERROR§r]§c " + e.getMessage());
                 return true;
             }
 

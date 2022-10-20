@@ -81,4 +81,15 @@ public class BankHelper extends SQLHelper {
         return serializeBank(bank);
     }
 
+    public Bank getBankByOwner(String owner) throws SQLException {
+        ResultSet bank = query(
+                "SELECT * from bank where owner=?",
+                owner);
+        return serializeBank(bank);
+    }
+
+    public Bank getBankByOwnerPlayer(Player player) throws SQLException {
+        return this.getBankByOwner(player.getUniqueId().toString());
+    }
+
 }

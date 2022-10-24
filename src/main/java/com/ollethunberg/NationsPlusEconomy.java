@@ -19,6 +19,7 @@ import com.ollethunberg.commands.balance.BalanceHandler;
 import com.ollethunberg.commands.bank.BankGUI;
 import com.ollethunberg.commands.bank.BankHandler;
 import com.ollethunberg.commands.bank.BanksHandler;
+import com.ollethunberg.commands.bankManager.BankManagerGUI;
 import com.ollethunberg.commands.bankManager.BankManagerHandler;
 import com.ollethunberg.commands.loan.LoanGUI;
 import com.ollethunberg.commands.loan.LoanHandler;
@@ -52,6 +53,7 @@ public class NationsPlusEconomy extends JavaPlugin {
   private BanksHandler banksHandler;
   private BankGUI bankGUI;
   private LoanGUI loanGUI;
+  private BankManagerGUI bankManagerGUI;
   public Configuration config;
   private WalletBalanceHelper walletBalanceHelper;
 
@@ -78,7 +80,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       payHandler = new PayHandler();
       bankGUI = new BankGUI();
       loanGUI = new LoanGUI();
-
+      bankManagerGUI = new BankManagerGUI();
       // Register commands
       getCommand("balance").setExecutor(balanceHandler);
       getCommand("bank").setExecutor(bankHandler);
@@ -90,6 +92,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       /* Register event listeners */
       getServer().getPluginManager().registerEvents(bankGUI, this);
       getServer().getPluginManager().registerEvents(loanGUI, this);
+      getServer().getPluginManager().registerEvents(bankManagerGUI, this);
 
       this.runTimer();
     } catch (SQLException e) {

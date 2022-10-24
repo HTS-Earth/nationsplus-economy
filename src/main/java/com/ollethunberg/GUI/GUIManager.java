@@ -68,4 +68,14 @@ public class GUIManager extends WalletBalanceHelper {
         player.sendMessage("§r[§4§lERROR§r]§c " + error.getMessage());
     }
 
+    protected String encodeCmd(String cmd) {
+        return convertToInvisibleString(cmd).replaceAll(" ", "_");
+    }
+
+    // TODO FIX WHY THIS ISNT WORKING, IT DOESN't DECODE PROPERLY
+    protected String decodeCmd(String cmd) {
+        return ChatColor.stripColor(cmd).replaceAll("_", " "); // make sure we don't have any color codes.
+
+    }
+
 }

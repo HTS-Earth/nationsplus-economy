@@ -28,4 +28,12 @@ public class PlayerHelper extends SQLHelper {
         return players;
     }
 
+    public DBPlayer getPlayer(String uid) throws SQLException {
+        ResultSet rs = query("SELECT * from player where uid=?", uid);
+        if (!rs.next()) {
+            throw new Error("No player found");
+        }
+        return serializeDBPlayer(rs);
+    }
+
 }

@@ -64,7 +64,8 @@ public class BankManager extends WalletBalanceHelper {
     }
 
     public void updateOfferStatus(Player player, int id, boolean accepted) throws SQLException, Error {
-
+        if (!authLoan(player, id))
+            throw new Error("You are not authorized to tamper with this loan");
         // get the bank which the owner is in
         Bank bank = bankHelper.getBankByOwnerPlayer(player);
 
@@ -92,6 +93,8 @@ public class BankManager extends WalletBalanceHelper {
     }
 
     public void acceptLoan(Player player, int id) throws SQLException, Error {
+        if (!authLoan(player, id))
+            throw new Error("You are not authorized to accept this loan");
         // Get the loan from the database
         DBLoan loanOffer = loanHelper.getLoanById(id);
         Bank bank = bankHelper.getBank(loanOffer.bank_name);
@@ -104,6 +107,45 @@ public class BankManager extends WalletBalanceHelper {
         // Pay out the loan to the player and notifiy them
 
         updateOfferStatus(player, id, true);
+    }
+
+    public void cancelLoan(Player player, int id) throws SQLException, Error {
+        if (!authLoan(player, id))
+            throw new Error("You are not authorized to cancel this loan");
+        // Get the loan
+        DBLoan loan = loanHelper.getLoanById(id);
+        // check if the loan is active
+        if (!loan.active || !loan.accepted) {
+            player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cThe loan is not active");
+            return;
+        }
+        // cancel the loans, make it active=false and accepted=false
+        String query = "UPDATE bank_loan SET active = ?, accepted = ? WHERE id = ?";
+        update(query, false, false, id);
+        player.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§aLoan cancelled");
+
+    }
+
+    public void loanInfo(Player player, int id, String backCmd) throws Exception {
+        if (!authLoan(player, id))
+            throw new Error("You are not authorized to view this loan");
+        // Get the loan
+        DBLoan loan = loanHelper.getLoanById(id);
+        // get the customer of the loan
+        DBPlayer customer = playerHelper.getPlayer(loan.player_id);
+
+        bankManagerGUI.loanInfo(player, loan, customer.player_name, backCmd);
+    }
+
+    public boolean authLoan(Player player, int loanId) throws SQLException, Error {
+        // check if the player is the owner of the bank who has the loan
+        DBLoan loan = loanHelper.getLoanById(loanId);
+        Bank bank = bankHelper.getBank(loan.bank_name);
+        if (!bank.owner.equals(player.getUniqueId().toString())) {
+
+            return false;
+        }
+        return true;
     }
 
 }

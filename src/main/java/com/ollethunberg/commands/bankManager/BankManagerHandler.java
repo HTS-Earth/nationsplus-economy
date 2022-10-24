@@ -40,38 +40,31 @@ public class BankManagerHandler implements CommandExecutor {
                         }
                     }
                     case "LOANS": {
-                        switch (args.length) {
-                            case 1: {
-                                bankManager.listLoans(player, true, true);
-                                break;
-                            }
-                            case 2: {
-                                if (args[1].equalsIgnoreCase("offers")) {
+                        if (args.length == 1) {
+                            bankManager.listLoans(player, true, true);
+                        }
+                        String loansArg = args[1].toUpperCase();
+
+                        switch (loansArg) {
+                            case "OFFERS": {
+                                if (args.length == 2) {
                                     bankManager.listLoans(player, false, false);
+                                } else {
+                                    String offersAction = args[2].toUpperCase();
+                                    if (offersAction.equals("ACCEPT")) {
+                                        bankManager.acceptLoan(player, Integer.parseInt(args[3]));
+                                    } else if (offersAction.equals("DECLINE")) {
+                                        bankManager.updateOfferStatus(player, Integer.parseInt(args[3]), false);
+                                    }
                                 }
                                 break;
                             }
-                            case 3: {
-                                if (args[1].equalsIgnoreCase("offers")) {
-                                    throw new Error("Usage is: /bankmanager loans offers <accept | deny>");
-                                }
+                            case "INFO": {
+                                bankManager.loanInfo(player, Integer.parseInt(args[2]), args[3] != null ? args[3] : "");
                                 break;
                             }
-                            case 4: {
-                                String loanAction = args[2];
-                                if (args[2] == null)
-                                    throw new Error("You need to specify a loan id!");
-
-                                int id = Integer.parseInt(args[3]);
-
-                                if (loanAction.equalsIgnoreCase("accept")) {
-
-                                    bankManager.acceptLoan(player, id);
-
-                                } else if (loanAction.equalsIgnoreCase("deny")) {
-                                    bankManager.updateOfferStatus(player, id, false);
-                                }
-
+                            case "CANCEL": {
+                                bankManager.cancelLoan(player, Integer.parseInt(args[2]));
                                 break;
                             }
                         }
@@ -107,10 +100,11 @@ public class BankManagerHandler implements CommandExecutor {
         player.sendMessage(
                 "§c/bankmanager interest [amount in %]" + "§7 - Set the interest rate for the bank");
         player.sendMessage("§c/bankmanager interest" + "§7 - Get the interest rate for the bank");
-        // see requested loans and accept or deny them
+        // see requested loans and accept or decline them
         player.sendMessage("§c/bankmanager loans offers" + "§7 - See the requested loans");
         player.sendMessage("§c/bankmanager loans" + "§7 - See active loans");
         player.sendMessage("§c/bankmanager loans offers accept [id]" + "§7 - Accept a loan");
-        player.sendMessage("§c/bankmanager loans offers deny [id]" + "§7 - Deny a loan");
+        player.sendMessage("§c/bankmanager loans offers decline [id]" + "§7 - Decline a loan");
+        player.sendMessage("§c/bankmanager loans cancel [id]" + "§7 - Cancel an accepted and active loan");
     }
 }

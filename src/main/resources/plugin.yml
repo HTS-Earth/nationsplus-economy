@@ -29,3 +29,7 @@ commands:
     description: Lists all the banks
     usage: /<command> <action>
     aliases: [loans, l, loan]
+  close:
+    description: Closes the open GUI
+    usage: /<command>
+    aliases: [close]

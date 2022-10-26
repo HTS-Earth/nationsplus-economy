@@ -137,6 +137,12 @@ public class BankManager extends WalletBalanceHelper {
         bankManagerGUI.loanInfo(player, loan, customer.player_name, backCmd);
     }
 
+    public void bankManager(Player player) throws Exception {
+        // get the bank which the owner is in
+        Bank bank = bankHelper.getBankByOwnerPlayer(player);
+        bankManagerGUI.bankManager(player, bank);
+    }
+
     public boolean authLoan(Player player, int loanId) throws SQLException, Error {
         // check if the player is the owner of the bank who has the loan
         DBLoan loan = loanHelper.getLoanById(loanId);

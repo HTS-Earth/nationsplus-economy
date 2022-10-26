@@ -19,14 +19,21 @@ public class BankManagerHandler implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
+
             Player player = (Player) sender;
             if (args.length == 0) {
-                this.sendHelpMessage(player);
+                try {
+                    bankManager.bankManager(player);
+                } catch (Exception e) {
+                    player.sendMessage("§cAn error occured when trying to find your bank!");
+                    e.printStackTrace();
+                }
                 return true;
             }
             String action = args[0].toUpperCase();
             try {
                 switch (action) {
+
                     case "INTEREST": {
                         if (args.length == 1) {
                             bankManager.getInterest(player);
@@ -60,7 +67,7 @@ public class BankManagerHandler implements CommandExecutor {
                                 break;
                             }
                             case "INFO": {
-                                bankManager.loanInfo(player, Integer.parseInt(args[2]), args[3] != null ? args[3] : "");
+                                bankManager.loanInfo(player, Integer.parseInt(args[2]), args.length > 3 ? args[3] : "");
                                 break;
                             }
                             case "CANCEL": {
@@ -106,5 +113,6 @@ public class BankManagerHandler implements CommandExecutor {
         player.sendMessage("§c/bankmanager loans offers accept [id]" + "§7 - Accept a loan");
         player.sendMessage("§c/bankmanager loans offers decline [id]" + "§7 - Decline a loan");
         player.sendMessage("§c/bankmanager loans cancel [id]" + "§7 - Cancel an accepted and active loan");
+        player.sendMessage("§c/bankmanager help §7 - Shows help message");
     }
 }

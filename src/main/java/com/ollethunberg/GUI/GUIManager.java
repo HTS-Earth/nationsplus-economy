@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class GUIManager extends WalletBalanceHelper {
@@ -58,7 +59,7 @@ public class GUIManager extends WalletBalanceHelper {
 
             identifier = ChatColor.stripColor(identifier);
             return identifier;
-        } catch (IndexOutOfBoundsException e) {
+        } catch (Exception e) {
             return "";
         }
 
@@ -74,7 +75,9 @@ public class GUIManager extends WalletBalanceHelper {
 
     // TODO FIX WHY THIS ISNT WORKING, IT DOESN't DECODE PROPERLY
     protected String decodeCmd(String cmd) {
-        return ChatColor.stripColor(cmd).replaceAll("_", " "); // make sure we don't have any color codes.
+        NationsPlusEconomy.LOGGER.info(cmd);
+        return ChatColor.stripColor(cmd).replaceAll("_", " "); // make sure we don't have any color
+                                                               // codes.
 
     }
 

@@ -5,4 +5,6 @@ public class Bank {
     public String owner;
     public float saving_interest;
     public float balance;
+    public float customers_balance;
+    public float safety_rating;
 };

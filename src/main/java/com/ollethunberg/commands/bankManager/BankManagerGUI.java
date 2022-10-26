@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.GUI.GUIManager;
+import com.ollethunberg.commands.bank.models.Bank;
 import com.ollethunberg.commands.loan.LoanHelper;
 import com.ollethunberg.commands.loan.models.DBLoan;
 import com.ollethunberg.database.DBPlayer;
@@ -51,13 +52,19 @@ public class BankManagerGUI extends GUIManager implements Listener {
             /* Add item to inventory */
             inventory.setItem(i, item);
         }
+        // Back button to bank manager
+        inventory.setItem(inventory.getSize() - 1,
+                this.createGuiItem(Material.BARRIER, "§c§lBack", "cmd#bm", "§7Go back to bank manager"));
+
     }
 
     private ItemStack loanInfoItem(DBLoan loan, String player_name) throws Exception {
         String paidToTotalRateColor = ColorHelper.getColorFromPercentage(loan.amount_paid / loan.amount_total);
         /* Create GUI item */
         ItemStack item = this.createGuiItem(loan.active ? Material.EMERALD_BLOCK : Material.NAME_TAG,
-                (loan.active ? "§2§lACTIVE Loan #" : "§aLoan #") + loan.id, "loan#" + loan.id,
+                (loan.active ? "§2§lACTIVE Loan #" : "§aLoan #") + loan.id,
+                "cmd#" + encodeCmd(
+                        "bm loans info " + loan.id) + "#" + encodeCmd("bm loans" + (loan.accepted ? "" : " offers")),
                 "§7Interest rate: §r§l§a" + loan.interest_rate * 100 + "%",
                 "§7Amount paid: §r" + paidToTotalRateColor
                         + NationsPlusEconomy.dollarFormat.format(loan.amount_paid) + "§f/§a"
@@ -104,10 +111,42 @@ public class BankManagerGUI extends GUIManager implements Listener {
         ItemStack loanInfoItem = this.loanInfoItem(loan, customerName);
         inventory.setItem(7, loanInfoItem);
 
+        NationsPlusEconomy.LOGGER.info(backCmd);
         // go back
         ItemStack backItem = this.createGuiItem(Material.BARRIER, "§c§lGo back", "cmd#" + encodeCmd(backCmd),
                 "§7Click to go back");
         inventory.setItem(8, backItem);
+
+    }
+
+    public void bankManager(Player player, Bank bank) throws Exception {
+        inventory = Bukkit.createInventory(null, rowsToSize(1), GUITitles.get("bankManager"));
+        this.initializeBankManagerGUIItems(player, bank);
+        player.openInventory(inventory);
+    }
+
+    public void initializeBankManagerGUIItems(Player player, Bank bank) throws Exception {
+        // GUI item for bank info
+        ItemStack bankInfoItem = this.createGuiItem(Material.CHEST, "§a§lBank Info", "bank_info",
+                "§7Interest rate: §r§l§a" + bank.saving_interest * 100 + "%",
+                "§7Safety rating: §r§l§a" + ColorHelper.getColorFromPercentage(bank.safety_rating),
+                "§7Bank balance: §r§l§a" + NationsPlusEconomy.dollarFormat.format(bank.balance),
+                "§7Customers balance: §r§l§a" + NationsPlusEconomy.dollarFormat.format(bank.customers_balance));
+        inventory.setItem(0, bankInfoItem);
+        // GUI item for bank loans
+        ItemStack bankLoansItem = this.createGuiItem(Material.EMERALD_BLOCK, "§2§lBank Loans",
+                "cmd#" + encodeCmd("bm loans"),
+                "§7Click to view bank loans");
+        inventory.setItem(1, bankLoansItem);
+        // GUI item for bank loans offers
+        ItemStack bankLoansOffersItem = this.createGuiItem(Material.NAME_TAG, "§2§lBank Loan Offers",
+                "cmd#" + encodeCmd("bm loans offers"), "§7Click to view bank loan offers");
+        inventory.setItem(2, bankLoansOffersItem);
+
+        // close window
+        ItemStack closeItem = this.createGuiItem(Material.BARRIER, "§c§lClose", "cmd#close",
+                "§7Click to close");
+        inventory.setItem(8, closeItem);
 
     }
 
@@ -121,24 +160,42 @@ public class BankManagerGUI extends GUIManager implements Listener {
                 e.setCancelled(true);
                 if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR)
                     return;
+
                 String[] identifier = getIdentifier(e.getCurrentItem()).split("#");
                 // get identifier name
                 String identifierName = identifier[0];
-                String identifierValue = identifier[1];
+                String identifierValue = identifier.length > 1 ? identifier[1] : "";
+                String identifierBackCmd = identifier.length > 2 ? identifier[2] : "";
+                NationsPlusEconomy.LOGGER.info(identifierName);
+                NationsPlusEconomy.LOGGER.info(identifierValue);
+                NationsPlusEconomy.LOGGER.info(identifierBackCmd);
                 switch (identifierName) {
+                    case "loan": {
+
+                        player.performCommand("bm loans info " + identifierValue + " " + encodeCmd("bm loans"));
+                        break;
+                    }
                     case "cmd": {
-                        player.performCommand(decodeCmd(identifierValue));
+                        player.closeInventory();
+
+                        player.performCommand(decodeCmd(identifierValue) + " " + identifierBackCmd);
+
                         break;
                     }
                     case "accept_loan": {
+                        player.closeInventory();
                         player.performCommand("bm loans offers accept " + identifierValue);
                         break;
                     }
                     case "decline_loan": {
+                        player.closeInventory();
+
                         player.performCommand("bm loans offers decline " + identifierValue);
                         break;
                     }
                     case "cancel_loan": {
+                        player.closeInventory();
+
                         player.performCommand("bm loans cancel " + identifierValue);
                         break;
                     }

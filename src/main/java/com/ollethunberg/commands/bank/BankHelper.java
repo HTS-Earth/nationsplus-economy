@@ -54,6 +54,8 @@ public class BankHelper extends SQLHelper {
         bank.owner = rs.getString("owner");
         bank.saving_interest = rs.getFloat("saving_interest");
         bank.balance = rs.getFloat("balance");
+        bank.customers_balance = rs.getFloat("customers_balance");
+        bank.safety_rating = bank.customers_balance / bank.balance;
         return bank;
     }
 
@@ -76,14 +78,14 @@ public class BankHelper extends SQLHelper {
 
     public Bank getBank(String bank_name) throws SQLException {
         ResultSet bank = query(
-                "SELECT * from bank where bank_name=?",
+                "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance from bank as b where b.bank_name=?",
                 bank_name);
         return serializeBank(bank);
     }
 
     public Bank getBankByOwner(String owner) throws SQLException {
         ResultSet bank = query(
-                "SELECT * from bank where owner=?",
+                "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance from bank as b where b.owner=?",
                 owner);
         return serializeBank(bank);
     }

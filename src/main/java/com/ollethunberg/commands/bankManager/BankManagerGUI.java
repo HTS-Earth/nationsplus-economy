@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.GUI.GUIManager;
 import com.ollethunberg.commands.bank.models.Bank;
+import com.ollethunberg.commands.bank.models.PlayerBankAccount;
 import com.ollethunberg.commands.loan.LoanHelper;
 import com.ollethunberg.commands.loan.models.DBLoan;
 import com.ollethunberg.database.DBPlayer;
@@ -119,6 +120,37 @@ public class BankManagerGUI extends GUIManager implements Listener {
 
     }
 
+    public void getAccounts(Player player, List<PlayerBankAccount> accounts) throws Exception {
+        inventory = Bukkit.createInventory(null, rowsToSize(4), GUITitles.get("bankManager"));
+        this.initializeGetAccountsGUIItems(accounts);
+        player.openInventory(inventory);
+    }
+
+    private void initializeGetAccountsGUIItems(List<PlayerBankAccount> accounts) throws Exception {
+        for (int i = 0; i < accounts.size(); i++) {
+            PlayerBankAccount account = accounts.get(i);
+            /* Create GUI item */
+            ItemStack item = this.accountInfoItem(account);
+
+            /* Add item to inventory */
+            inventory.setItem(i, item);
+        }
+        // Back button to bank manager
+        inventory.setItem(inventory.getSize() - 1,
+                this.createGuiItem(Material.BARRIER, "§c§lBack", "cmd#bm", "§7Go back to bank manager"));
+
+    }
+
+    private ItemStack accountInfoItem(PlayerBankAccount account) throws Exception {
+
+        /* Create GUI item */
+        ItemStack item = this.createGuiItem(Material.NAME_TAG, "§aAccount of " + account.player_name,
+                "",
+                "§7Balance: §r" + NationsPlusEconomy.dollarFormat.format(account.balance),
+                "§7Player: §r§l§a" + account.player_name);
+        return item;
+    }
+
     public void bankManager(Player player, Bank bank) throws Exception {
         inventory = Bukkit.createInventory(null, rowsToSize(1), GUITitles.get("bankManager"));
         this.initializeBankManagerGUIItems(player, bank);
@@ -142,6 +174,11 @@ public class BankManagerGUI extends GUIManager implements Listener {
         ItemStack bankLoansOffersItem = this.createGuiItem(Material.NAME_TAG, "§2§lBank Loan Offers",
                 "cmd#" + encodeCmd("bm loans offers"), "§7Click to view bank loan offers");
         inventory.setItem(2, bankLoansOffersItem);
+
+        // GUI Item for bank accounts
+        ItemStack bankAccountsItem = this.createGuiItem(Material.PLAYER_HEAD, "§2§lBank Accounts",
+                "cmd#" + encodeCmd("bm accounts"), "§7Click to view bank accounts");
+        inventory.setItem(3, bankAccountsItem);
 
         // close window
         ItemStack closeItem = this.createGuiItem(Material.BARRIER, "§c§lClose", "cmd#close",

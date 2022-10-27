@@ -46,6 +46,10 @@ public class BankManagerHandler implements CommandExecutor {
                             break;
                         }
                     }
+                    case "ACCOUNTS": {
+                        bankManager.getAccounts(player);
+                        break;
+                    }
                     case "LOANS": {
                         if (args.length == 1) {
                             bankManager.listLoans(player, true, true);

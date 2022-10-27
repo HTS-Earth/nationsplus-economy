@@ -2,6 +2,8 @@ package com.ollethunberg.commands.bank;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.entity.Player;
 
@@ -94,4 +96,25 @@ public class BankHelper extends SQLHelper {
         return this.getBankByOwner(player.getUniqueId().toString());
     }
 
+    public PlayerBankAccount serializeBankAccount(ResultSet rs) throws SQLException {
+
+        PlayerBankAccount bankAccount = new PlayerBankAccount();
+        bankAccount.bank_name = rs.getString("bank_name");
+        bankAccount.player_id = rs.getString("player_id");
+        bankAccount.balance = rs.getFloat("balance");
+        bankAccount.player_name = rs.getString("player_name");
+        return bankAccount;
+    }
+
+    public List<PlayerBankAccount> getBankAccounts(String bank_name) throws SQLException {
+        ResultSet bankAccounts = query(
+                "SELECT ba.*, p.player_name from bank_account as ba inner join player as p on p.uid=ba.player_id where ba.bank_name=?",
+                bank_name);
+        // for each bank account
+        List<PlayerBankAccount> bankAccountsList = new ArrayList<PlayerBankAccount>();
+        while (bankAccounts.next()) {
+            bankAccountsList.add(serializeBankAccount(bankAccounts));
+        }
+        return bankAccountsList;
+    }
 }

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.lib.PermissionException;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class Balance extends WalletBalanceHelper {
@@ -52,7 +53,13 @@ public class Balance extends WalletBalanceHelper {
 
     }
 
-    public void give(Player sender, String target, float amount) {
+    public void give(Player sender, String target, float amount) throws Exception {
+        // check if sender has permission
+
+        if (!sender.hasPermission("npe.give")) {
+            throw new PermissionException("");
+        }
+
         // check if the target is a player or nation
         try {
             String entity = getEntityType(target);

@@ -3,7 +3,7 @@ package com.ollethunberg.utils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.lib.helpers.SQLHelper;
 
 public class WalletBalanceHelper extends SQLHelper {
 

@@ -1,11 +1,11 @@
-package com.ollethunberg.lib;
+package com.ollethunberg.lib.helpers;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ollethunberg.database.DBPlayer;
+import com.ollethunberg.lib.models.db.DBPlayer;
 
 public class PlayerHelper extends SQLHelper {
     public DBPlayer serializeDBPlayer(ResultSet rs) throws SQLException {
@@ -36,4 +36,11 @@ public class PlayerHelper extends SQLHelper {
         return serializeDBPlayer(rs);
     }
 
+    public DBPlayer getPlayerByName(String name) throws SQLException {
+        ResultSet rs = query("SELECT * from player where LOWER(player_name)=LOWER(?)", name);
+        if (!rs.next()) {
+            throw new Error("No player found");
+        }
+        return serializeDBPlayer(rs);
+    }
 }

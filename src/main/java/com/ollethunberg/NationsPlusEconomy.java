@@ -25,7 +25,7 @@ import com.ollethunberg.commands.close.CloseHandler;
 import com.ollethunberg.commands.loan.LoanGUI;
 import com.ollethunberg.commands.loan.LoanHandler;
 import com.ollethunberg.commands.pay.PayHandler;
-import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.lib.helpers.SQLHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 /*
@@ -115,20 +115,20 @@ public class NationsPlusEconomy extends JavaPlugin {
         // this runsevery hour
         // give every player $100 every hour
 
-        String updateSQL = "update player as p set balance = p.balance + (100 - (select tax from nation as n where n.name = p.nation ));";
+        String updateSQL = "update player as p set balance = p.balance + (100 - (select income_tax from nation as n where n.name = p.nation ));";
         try {
           SQLHelper.update(updateSQL);
           // send message to all players
           Bukkit.broadcastMessage(
               NationsPlusEconomy.walletPrefix + "§eYou have been given §a$100§e for being a loyal citizen! ");
-          // inform each player about how much of the tax they have paid
+
           ResultSet playerResultSet = SQLHelper.query(
-              "select p.player_name, n.tax, p.balance, n.name, p.uid from player as p inner join nation as n on n.name = p.nation where n.tax > 0;");
+              "select p.player_name, n.income_tax, p.balance, n.name, p.uid from player as p inner join nation as n on n.name = p.nation where n.income_tax > 0;");
 
           while (playerResultSet.next()) {
 
             String playerName = playerResultSet.getString("player_name");
-            int tax = playerResultSet.getInt("tax");
+            int tax = playerResultSet.getInt("income_tax");
             if (playerName == null) {
               continue;
             }

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.commands.balance.models.Balance;
-import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.lib.helpers.SQLHelper;
 
 public class BalanceHelper extends SQLHelper {
 

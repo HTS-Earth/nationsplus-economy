@@ -10,8 +10,8 @@ import org.bukkit.entity.Player;
 import com.ollethunberg.commands.bank.models.PlayerBankAccount;
 import com.ollethunberg.commands.bank.models.PlayerBankInfo;
 import com.ollethunberg.commands.bank.models.Bank;
-import com.ollethunberg.database.DBPlayer;
-import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.lib.models.db.DBPlayer;
+import com.ollethunberg.lib.helpers.SQLHelper;
 
 public class BankHelper extends SQLHelper {
 

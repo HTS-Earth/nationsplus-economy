@@ -17,7 +17,7 @@ import com.ollethunberg.commands.bank.models.Bank;
 import com.ollethunberg.commands.bank.models.PlayerBankAccount;
 import com.ollethunberg.commands.loan.LoanHelper;
 import com.ollethunberg.commands.loan.models.DBLoan;
-import com.ollethunberg.database.DBPlayer;
+import com.ollethunberg.lib.models.db.DBPlayer;
 import com.ollethunberg.lib.ColorHelper;
 
 public class BankManagerGUI extends GUIManager implements Listener {

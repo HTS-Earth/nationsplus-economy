@@ -8,7 +8,7 @@ import java.util.List;
 import org.bukkit.entity.Player;
 
 import com.ollethunberg.commands.loan.models.DBLoan;
-import com.ollethunberg.lib.SQLHelper;
+import com.ollethunberg.lib.helpers.SQLHelper;
 
 public class LoanHelper extends SQLHelper {
 

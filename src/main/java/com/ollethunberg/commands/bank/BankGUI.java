@@ -17,7 +17,7 @@ import com.ollethunberg.commands.balance.BalanceHelper;
 import com.ollethunberg.commands.balance.models.Balance;
 import com.ollethunberg.commands.bank.models.PlayerBankAccount;
 import com.ollethunberg.commands.bank.models.PlayerBankInfo;
-import com.ollethunberg.database.DBPlayer;
+import com.ollethunberg.lib.models.db.DBPlayer;
 import com.ollethunberg.lib.ColorHelper;
 
 public class BankGUI extends GUIManager implements Listener {

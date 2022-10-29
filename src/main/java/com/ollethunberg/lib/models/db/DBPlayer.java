@@ -1,4 +1,4 @@
-package com.ollethunberg.database;
+package com.ollethunberg.lib.models.db;
 
 public class DBPlayer {
     public String uid;

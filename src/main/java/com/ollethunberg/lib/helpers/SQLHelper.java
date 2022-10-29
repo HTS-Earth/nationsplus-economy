@@ -1,4 +1,4 @@
-package com.ollethunberg.lib;
+package com.ollethunberg.lib.helpers;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -10,7 +10,7 @@ import com.ollethunberg.commands.bank.BankHelper;
 
 import com.ollethunberg.commands.bank.models.PlayerBankInfo;
 import com.ollethunberg.commands.loan.models.DBLoan;
-import com.ollethunberg.database.DBPlayer;
+import com.ollethunberg.lib.models.db.DBPlayer;
 import com.ollethunberg.utils.WalletBalanceHelper;
 
 public class Loan extends WalletBalanceHelper {

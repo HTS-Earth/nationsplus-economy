@@ -38,19 +38,20 @@ public class MarketGUI extends GUIManager implements Listener {
     public static NumberFormat dollarFormat = NumberFormat.getCurrencyInstance(usa);
 
     public MarketGUI() {
-        GUITitles.put("market", "§2Global market listings");
+        GUITitles.put("market", "§2Global Market");
     }
 
-    public void openMarketGUI(Player player) throws SQLException, Exception {
+    public void openMarketGUI(Player player, Integer page) throws SQLException, Exception {
         // get listing
-        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD);
-        openListingsGUIItems(player, listings);
+        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD, page);
+        openListingsGUIItems(player, listings, page);
     }
 
-    public void openListingsGUI(Player player) throws SQLException, Exception {
+    public void openListingsGUI(Player player, Integer page) throws SQLException, Exception {
         // get listing
-        List<DBMarketListing> listings = marketHelper.getMarketListingsByPlayerId(player.getUniqueId().toString());
-        openMyListingsGUIItems(player, listings);
+        List<DBMarketListing> listings = marketHelper.getMarketListingsByPlayerId(player.getUniqueId().toString(),
+                page);
+        openMyListingsGUIItems(player, listings, page);
     }
 
     private ItemStack getListingGUIItem(DBMarketListing listing, OpenMarketIntention intention,
@@ -97,24 +98,50 @@ public class MarketGUI extends GUIManager implements Listener {
         return item;
     }
 
-    public void openListingsGUIItems(Player player, List<DBMarketListing> listings) {
-        inventory = Bukkit.createInventory(null, rowsToSize(6), GUITitles.get("market"));
+    public void openListingsGUIItems(Player player, List<DBMarketListing> listings, Integer page) {
+        inventory = Bukkit.createInventory(null, rowsToSize(6),
+                GUITitles.get("market") + " §7(All)" + "#" + page);
         // for loop with index
         for (int i = 0; i < listings.size(); i++) {
             inventory.setItem(i, getListingGUIItem(listings.get(i), OpenMarketIntention.ALL));
         }
+        inventory.setItem(53, navigationButtonItem(NavigationButtonType.NEXT));
+        inventory.setItem(45, navigationButtonItem(NavigationButtonType.PREVIOUS));
         player.openInventory(inventory);
 
     }
 
-    public void openMyListingsGUIItems(Player player, List<DBMarketListing> listings) {
-        inventory = Bukkit.createInventory(null, rowsToSize(6), GUITitles.get("market"));
+    public void openMyListingsGUIItems(Player player, List<DBMarketListing> listings, Integer page) {
+        inventory = Bukkit.createInventory(null, rowsToSize(6), GUITitles.get("market") + " §7(My)" + "#"
+                + page);
         // for loop with index
         for (int i = 0; i < listings.size(); i++) {
             inventory.setItem(i, getListingGUIItem(listings.get(i), OpenMarketIntention.OWN));
         }
+        // generate buttons
+        inventory.setItem(53, navigationButtonItem(NavigationButtonType.NEXT));
+        inventory.setItem(45, navigationButtonItem(NavigationButtonType.PREVIOUS));
         player.openInventory(inventory);
 
+    }
+
+    enum NavigationButtonType {
+        PREVIOUS, NEXT
+    }
+
+    public ItemStack navigationButtonItem(NavigationButtonType buttonType) {
+        String buttonText = "";
+        String action = "";
+        if (buttonType == NavigationButtonType.NEXT) {
+            buttonText = "§a§lNext";
+            action = "next";
+        } else if (buttonType == NavigationButtonType.PREVIOUS) {
+            buttonText = "§a§lPrevious";
+            action = "previous";
+        }
+        ItemStack item = this.createGuiItem(Material.ARROW, buttonText, action);
+
+        return item;
     }
 
     @EventHandler()
@@ -124,7 +151,9 @@ public class MarketGUI extends GUIManager implements Listener {
         Player player = (Player) e.getWhoClicked();
         try {
 
-            if (title.equals(GUITitles.get("market"))) {
+            if (title.startsWith(GUITitles.get("market"))) {
+                // get page
+                Integer page = Integer.parseInt(title.split("#")[1]);
                 e.setCancelled(true);
                 final ItemStack clickedItem = e.getCurrentItem();
                 String identifer = getIdentifier(clickedItem);
@@ -134,12 +163,33 @@ public class MarketGUI extends GUIManager implements Listener {
                 switch (identifierSplit[0]) {
                     case "buy": {
                         market.buyMarketListing(player, Integer.parseInt(identifierSplit[1]));
-                        openMarketGUI(player);
+                        openMarketGUI(player, page);
                         break;
                     }
                     case "delete": {
                         market.deleteMarketListing(player, Integer.parseInt(identifierSplit[1]));
-                        openListingsGUI(player);
+                        openListingsGUI(player, page);
+                        break;
+                    }
+                    case "next": {
+                        // if title includes my
+                        if (title.contains("(My)")) {
+                            openListingsGUI(player, page + 1);
+                        } else {
+                            openMarketGUI(player, page + 1);
+                        }
+                        break;
+                    }
+                    case "previous": {
+                        if (page == 0) {
+                            player.sendMessage("§cYou are already on the first page!");
+                            break;
+                        }
+                        if (title.contains("(My)")) {
+                            openListingsGUI(player, page - 1);
+                        } else {
+                            openMarketGUI(player, page - 1);
+                        }
                         break;
                     }
                 }

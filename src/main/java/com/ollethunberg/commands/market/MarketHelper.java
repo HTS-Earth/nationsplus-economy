@@ -57,26 +57,29 @@ public class MarketHelper extends SQLHelper {
         ALL, SOLD, UNSOLD
     }
 
-    public List<DBMarketListing> getMarketListings(ListingStatus status) throws SQLException, Exception {
+    public List<DBMarketListing> getMarketListings(ListingStatus status, Integer page) throws SQLException, Exception {
         // if executed is false, then only return listings with no buyer_id and no
         // date_sold
         switch (status) {
             case ALL:
-                return serializeMarketListings(query("SELECT * FROM market_listing"));
+                return serializeMarketListings(query("SELECT * FROM market_listing LIMIT 45 OFFSET ?", page * 45));
             case SOLD:
                 return serializeMarketListings(
-                        query("SELECT * FROM market_listing WHERE buyer_id IS NOT NULL AND date_sold IS NOT NULL"));
+                        query("SELECT * FROM market_listing WHERE buyer_id IS NOT NULL AND date_sold IS NOT NULL LIMIT 45 OFFSET ?",
+                                page * 45));
             case UNSOLD:
                 return serializeMarketListings(
-                        query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL"));
+                        query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL LIMIT 45 OFFSET ?",
+                                page * 45));
             default:
-                return serializeMarketListings(query("SELECT * FROM market_listing"));
+                return serializeMarketListings(query("SELECT * FROM market_listing LIMIT 45 OFFSET ?", page * 45));
         }
 
     }
 
-    public List<DBMarketListing> getMarketListingsByPlayerId(String playerId) throws SQLException, Exception {
-        ResultSet rs = query("SELECT * from market_listing WHERE seller_id = ?", playerId);
+    public List<DBMarketListing> getMarketListingsByPlayerId(String playerId, Integer page)
+            throws SQLException, Exception {
+        ResultSet rs = query("SELECT * from market_listing WHERE seller_id = ? LIMIT 45 OFFSET ?", playerId, page * 45);
         // serialize market listings
         return serializeMarketListings(rs);
     }

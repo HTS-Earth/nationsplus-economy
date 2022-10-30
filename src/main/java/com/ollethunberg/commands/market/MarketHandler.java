@@ -18,16 +18,17 @@ public class MarketHandler implements CommandExecutor, CommandHandlerInterface {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             try {
+                Integer arg0Integer = args.length > 0 ? Integer.parseInt(args[0]) : 0;
                 switch (command.getName()) {
                     case "market":
-                        marketGUI.openMarketGUI(player);
+
+                        marketGUI.openMarketGUI(player, arg0Integer);
                         break;
                     case "sell":
-                        market.addMarketListing(player, Integer.parseInt(args[0]));
+                        market.addMarketListing(player, arg0Integer);
                         break;
-
                     case "listings":
-                        marketGUI.openListingsGUI(player);
+                        marketGUI.openListingsGUI(player, arg0Integer);
                         break;
 
                 }

@@ -33,3 +33,11 @@ commands:
     description: Closes the open GUI
     usage: /<command>
     aliases: [close]
+  sell:
+    description: Sells the item in your hand
+    usage: /<command> <amount>
+    aliases: [sell, s]
+  market:
+    description: Opens the market GUI
+    usage: /<command>
+    aliases: [market, mp]

@@ -24,6 +24,8 @@ import com.ollethunberg.commands.bankManager.BankManagerHandler;
 import com.ollethunberg.commands.close.CloseHandler;
 import com.ollethunberg.commands.loan.LoanGUI;
 import com.ollethunberg.commands.loan.LoanHandler;
+import com.ollethunberg.commands.market.MarketGUI;
+import com.ollethunberg.commands.market.MarketHandler;
 import com.ollethunberg.commands.pay.PayHandler;
 import com.ollethunberg.lib.helpers.SQLHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
@@ -58,6 +60,8 @@ public class NationsPlusEconomy extends JavaPlugin {
   private BankManagerGUI bankManagerGUI;
   public Configuration config;
   private WalletBalanceHelper walletBalanceHelper;
+  private MarketHandler marketHandler;
+  private MarketGUI marketGUI;
 
   public void onEnable() {
     loadConfig();
@@ -84,6 +88,8 @@ public class NationsPlusEconomy extends JavaPlugin {
       bankGUI = new BankGUI();
       loanGUI = new LoanGUI();
       bankManagerGUI = new BankManagerGUI();
+      marketHandler = new MarketHandler();
+      marketGUI = new MarketGUI();
       // Register commands
       getCommand("balance").setExecutor(balanceHandler);
       getCommand("bank").setExecutor(bankHandler);
@@ -92,11 +98,14 @@ public class NationsPlusEconomy extends JavaPlugin {
       getCommand("pay").setExecutor(payHandler);
       getCommand("banks").setExecutor(banksHandler);
       getCommand("close").setExecutor(closeHandler);
+      getCommand("market").setExecutor(marketHandler);
+      getCommand("sell").setExecutor(marketHandler);
 
       /* Register event listeners */
       getServer().getPluginManager().registerEvents(bankGUI, this);
       getServer().getPluginManager().registerEvents(loanGUI, this);
       getServer().getPluginManager().registerEvents(bankManagerGUI, this);
+      getServer().getPluginManager().registerEvents(marketGUI, this);
 
       this.runTimer();
     } catch (SQLException e) {

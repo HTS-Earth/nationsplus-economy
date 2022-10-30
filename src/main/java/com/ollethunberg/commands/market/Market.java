@@ -1,0 +1,100 @@
+package com.ollethunberg.commands.market;
+
+import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.lib.helpers.PlayerHelper;
+import com.ollethunberg.lib.models.db.DBMarketListing;
+import com.ollethunberg.lib.models.db.DBPlayer;
+import com.ollethunberg.utils.WalletBalanceHelper;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+public class Market extends WalletBalanceHelper {
+
+    MarketHelper marketHelper = new MarketHelper();
+    PlayerHelper playerHelper = new PlayerHelper();
+
+    public void addMarketListing(Player player, Integer price) throws SQLException, Exception {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        // check the item has been used
+        if (item == null || item.getType().isAir())
+            throw new Exception("§cYou need to hold an item in your hand to sell it!");
+
+        if (price <= 0)
+            throw new Exception("Price must be greater than 0");
+
+        // check if the item has been damaged
+        Damageable damageable = (Damageable) item.getItemMeta();
+
+        if (damageable.getDamage() > 0)
+            throw new Exception("§cYou can't sell damaged items!");
+
+        if (price > 10000000)
+            throw new Exception("§cYou can't sell items for more than 10,000,000!");
+        // get listing
+        DBMarketListing listing = new DBMarketListing();
+        listing.seller_id = player.getUniqueId().toString();
+        listing.material = item.getType().toString();
+        listing.amount = item.getAmount();
+        listing.lore_name = item.getItemMeta().getDisplayName();
+        listing.price = price;
+
+        Map<Enchantment, Integer> enchants = item.getEnchantments();
+        List<String> enchantList = new ArrayList<String>();
+        for (Enchantment e : item.getEnchantments().keySet()) {
+            int level = enchants.get(e);
+            NamespacedKey key = e.getKey();
+            String enchant = key.getKey() + ":" + level;
+            enchantList.add(enchant + ":" + level);
+        }
+        listing.enchantments = String.join(",", enchantList);
+
+        listing.date = new java.util.Date().toString();
+        player.getInventory().remove(item);
+        marketHelper.addMarketListing(listing);
+    }
+
+    public void buyMarketListing(Player player, Integer id) throws SQLException, Error {
+        // get the listing from database
+        DBMarketListing listing = marketHelper.getMarketListing(id);
+        if (listing.seller_id.equals(player.getUniqueId().toString())) {
+            throw new Error("You can't buy your own listing!");
+        }
+        // check if the player has enough money
+        DBPlayer dbPlayer = playerHelper.getPlayer(player.getUniqueId().toString());
+
+        if (dbPlayer.balance < listing.price)
+            throw new Error("§cYou don't have enough money to buy this item!");
+
+        // check if the player has enough space in inventory
+        if (player.getInventory().firstEmpty() == -1)
+            throw new Error("§cYou don't have enough space in your inventory to buy this item!");
+
+        // create the item
+        ItemStack item = marketHelper.createItemFromListing(listing);
+
+        // remove the money from the player
+        addBalancePlayer(player.getUniqueId().toString(), listing.price);
+
+        // add the item to the player
+        player.getInventory().addItem(item);
+
+        // remove the listing from the database
+        marketHelper.removeMarketListing(id);
+
+        // send message to the player
+        player.sendMessage(
+                "§aYou bought " + listing.amount + " of " + listing.material + " for "
+                        + NationsPlusEconomy.dollarFormat.format(listing.price) + "!");
+
+    }
+
+}

@@ -65,7 +65,7 @@ public class Market extends WalletBalanceHelper {
             listing.lore = String.join(",", item.getItemMeta().getLore());
         }
 
-        player.getInventory().remove(item);
+        player.getInventory().removeItem(item);
 
         marketHelper.addMarketListing(listing);
     }

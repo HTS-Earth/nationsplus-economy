@@ -20,11 +20,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ollethunberg.GUI.GUIManager;
+import com.ollethunberg.commands.market.MarketHelper.ListingStatus;
 import com.ollethunberg.lib.models.db.DBMarketListing;
 
 import net.md_5.bungee.api.ChatColor;
 
 public class MarketGUI extends GUIManager implements Listener {
+    enum OpenMarketIntention {
+        ALL, OWN
+    }
 
     Market market = new Market();
     MarketHelper marketHelper = new MarketHelper();
@@ -39,11 +43,18 @@ public class MarketGUI extends GUIManager implements Listener {
 
     public void openMarketGUI(Player player) throws SQLException, Exception {
         // get listing
-        List<DBMarketListing> listings = marketHelper.getMarketListings();
+        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD);
         openListingsGUIItems(player, listings);
     }
 
-    private ItemStack getListingGUIItem(DBMarketListing listing, String... additionalLore) {
+    public void openListingsGUI(Player player) throws SQLException, Exception {
+        // get listing
+        List<DBMarketListing> listings = marketHelper.getMarketListingsByPlayerId(player.getUniqueId().toString());
+        openMyListingsGUIItems(player, listings);
+    }
+
+    private ItemStack getListingGUIItem(DBMarketListing listing, OpenMarketIntention intention,
+            String... additionalLore) {
         Material m = Material.getMaterial(listing.material);
         ItemStack item = new ItemStack(m, listing.amount);
         // add enchants
@@ -61,13 +72,24 @@ public class MarketGUI extends GUIManager implements Listener {
 
         lore.add(ChatColor.WHITE + "Price: "
                 + "§a" + dollarFormat.format(listing.price));
-        lore.add(ChatColor.WHITE + "Seller: "
-                + "§a" + Bukkit.getOfflinePlayer(UUID.fromString(listing.seller_id)).getName());
+        if (intention == OpenMarketIntention.ALL) {
+            lore.add(ChatColor.WHITE + "Seller: "
+                    + "§a" + Bukkit.getOfflinePlayer(UUID.fromString(listing.seller_id)).getName());
 
-        lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Right click" + ChatColor.WHITE + " to "
-                + ChatColor.GREEN + "" + ChatColor.BOLD + "BUY" + ChatColor.WHITE + " this item");
-        // add identifier
-        lore.add(convertToInvisibleString("buy#" + listing.id));
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Right click" + ChatColor.WHITE + " to "
+                    + ChatColor.GREEN + "" + ChatColor.BOLD + "BUY" + ChatColor.WHITE + " this item");
+            // add identifier
+            lore.add(convertToInvisibleString("buy#" + listing.id));
+
+        } else if (intention == OpenMarketIntention.OWN) {
+
+            // click to remove this item
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Right click" + ChatColor.WHITE + " to "
+                    + ChatColor.GREEN + "" + ChatColor.RED + "REMOVE" + ChatColor.WHITE + " this item");
+            // add identifier
+            lore.add(convertToInvisibleString("delete#" + listing.id));
+
+        }
 
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -79,7 +101,17 @@ public class MarketGUI extends GUIManager implements Listener {
         inventory = Bukkit.createInventory(null, rowsToSize(6), GUITitles.get("market"));
         // for loop with index
         for (int i = 0; i < listings.size(); i++) {
-            inventory.setItem(i, getListingGUIItem(listings.get(i)));
+            inventory.setItem(i, getListingGUIItem(listings.get(i), OpenMarketIntention.ALL));
+        }
+        player.openInventory(inventory);
+
+    }
+
+    public void openMyListingsGUIItems(Player player, List<DBMarketListing> listings) {
+        inventory = Bukkit.createInventory(null, rowsToSize(6), GUITitles.get("market"));
+        // for loop with index
+        for (int i = 0; i < listings.size(); i++) {
+            inventory.setItem(i, getListingGUIItem(listings.get(i), OpenMarketIntention.OWN));
         }
         player.openInventory(inventory);
 
@@ -99,9 +131,17 @@ public class MarketGUI extends GUIManager implements Listener {
                 if (identifer == null)
                     return;
                 String[] identifierSplit = identifer.split("#");
-                if (identifierSplit[0].equals("buy")) {
-                    market.buyMarketListing(player, Integer.parseInt(identifierSplit[1]));
-                    openMarketGUI(player);
+                switch (identifierSplit[0]) {
+                    case "buy": {
+                        market.buyMarketListing(player, Integer.parseInt(identifierSplit[1]));
+                        openMarketGUI(player);
+                        break;
+                    }
+                    case "delete": {
+                        market.deleteMarketListing(player, Integer.parseInt(identifierSplit[1]));
+                        openListingsGUI(player);
+                        break;
+                    }
                 }
             }
         } catch (SQLException error) {

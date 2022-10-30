@@ -20,10 +20,12 @@ public class MarketHelper extends SQLHelper {
         DBMarketListing listing = new DBMarketListing();
 
         listing.seller_id = rs.getString("seller_id");
+        listing.buyer_id = rs.getString("buyer_id");
         listing.id = rs.getInt("id");
         listing.material = rs.getString("material");
         listing.amount = rs.getInt("amount");
         listing.lore_name = rs.getString("lore_name");
+        listing.lore = rs.getString("lore");
         listing.price = rs.getInt("price");
         listing.enchantments = rs.getString("enchantments");
         listing.date = rs.getString("date");
@@ -51,10 +53,26 @@ public class MarketHelper extends SQLHelper {
 
     }
 
-    public List<DBMarketListing> getMarketListings() throws SQLException, Exception {
-        ResultSet rs = query("SELECT * from market_listing");
-        // serialize market listings
-        return serializeMarketListings(rs);
+    enum ListingStatus {
+        ALL, SOLD, UNSOLD
+    }
+
+    public List<DBMarketListing> getMarketListings(ListingStatus status) throws SQLException, Exception {
+        // if executed is false, then only return listings with no buyer_id and no
+        // date_sold
+        switch (status) {
+            case ALL:
+                return serializeMarketListings(query("SELECT * FROM market_listing"));
+            case SOLD:
+                return serializeMarketListings(
+                        query("SELECT * FROM market_listing WHERE buyer_id IS NOT NULL AND date_sold IS NOT NULL"));
+            case UNSOLD:
+                return serializeMarketListings(
+                        query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL"));
+            default:
+                return serializeMarketListings(query("SELECT * FROM market_listing"));
+        }
+
     }
 
     public List<DBMarketListing> getMarketListingsByPlayerId(String playerId) throws SQLException, Exception {
@@ -64,17 +82,16 @@ public class MarketHelper extends SQLHelper {
     }
 
     public void addMarketListing(DBMarketListing listing) throws SQLException, Exception {
-        String query = "INSERT INTO market_listing (seller_id, material, amount, lore_name, price, enchantments, date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO market_listing (seller_id, material, amount, lore_name, price, enchantments, date, lore) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         update(query, listing.seller_id, listing.material, listing.amount.toString(), listing.lore_name,
-                listing.price.toString(), listing.enchantments, listing.date);
+                listing.price.toString(), listing.enchantments, listing.date, listing.lore);
     }
 
     public ItemStack createItemFromListing(DBMarketListing listing) throws Error {
         ItemStack item = new ItemStack(Material.getMaterial(listing.material), listing.amount);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(listing.lore_name);
-        item.setItemMeta(meta);
         // set enchantments
         if (listing.enchantments != null) {
             List<String> enchantments = Arrays.asList(listing.enchantments.split(","));
@@ -86,14 +103,25 @@ public class MarketHelper extends SQLHelper {
                         Integer.parseInt(enchantmentSplit[1]));
             }
         }
+        // add lore
+        if (listing.lore != null) {
+            List<String> lore = Arrays.asList(listing.lore.split(","));
+            meta.setLore(lore);
+        }
+        item.setItemMeta(meta);
 
         return item;
     }
 
     // remove market listing by id
-    public void removeMarketListing(Integer id) throws SQLException, Error {
+    public void deleteMarketListing(Integer id) throws SQLException, Error {
         String query = "DELETE FROM market_listing WHERE id = ?";
         update(query, id);
+    }
+
+    public void executeMarketListing(String buyer_id, Integer id) throws SQLException, Error {
+        String query = "UPDATE market_listing SET buyer_id = ?, date_sold = ? WHERE id = ?";
+        update(query, buyer_id, new java.util.Date().toString(), id);
     }
 
 }

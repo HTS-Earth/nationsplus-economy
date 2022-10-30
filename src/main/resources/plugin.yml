@@ -41,3 +41,7 @@ commands:
     description: Opens the market GUI
     usage: /<command>
     aliases: [market, mp]
+  listings:
+    description: Shows your current active listings on the market
+    usage: /<command>
+    aliases: [listings, listing, ls]

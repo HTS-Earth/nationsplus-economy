@@ -100,6 +100,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       getCommand("close").setExecutor(closeHandler);
       getCommand("market").setExecutor(marketHandler);
       getCommand("sell").setExecutor(marketHandler);
+      getCommand("listings").setExecutor(marketHandler);
 
       /* Register event listeners */
       getServer().getPluginManager().registerEvents(bankGUI, this);

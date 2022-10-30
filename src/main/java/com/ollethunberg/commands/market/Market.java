@@ -61,7 +61,12 @@ public class Market extends WalletBalanceHelper {
         listing.enchantments = String.join(",", enchantList);
 
         listing.date = new java.util.Date().toString();
+        if (item.getItemMeta().hasLore()) {
+            listing.lore = String.join(",", item.getItemMeta().getLore());
+        }
+
         player.getInventory().remove(item);
+
         marketHelper.addMarketListing(listing);
     }
 
@@ -99,7 +104,7 @@ public class Market extends WalletBalanceHelper {
         nationHelper.addMoney(dbSeller.nation, tax);
 
         // remove the listing from the database
-        marketHelper.removeMarketListing(id);
+        marketHelper.executeMarketListing(dbPlayer.uid, id);
 
         // add the item to the player
         player.getInventory().addItem(item);
@@ -117,6 +122,28 @@ public class Market extends WalletBalanceHelper {
                     "§7You earned §a" + NationsPlusEconomy.dollarFormat.format(listing.price - tax) + "§7 after tax!");
 
         }
+    }
+
+    public void deleteMarketListing(Player player, Integer id) throws Error, SQLException {
+        // get the listing from database
+        DBMarketListing listing = marketHelper.getMarketListing(id);
+        if (!listing.seller_id.equals(player.getUniqueId().toString())) {
+            throw new Error("You can't delete someone else's listing!");
+        }
+        // remove the listing from the database
+        marketHelper.deleteMarketListing(id);
+
+        // check if player has inventory space
+        if (player.getInventory().firstEmpty() == -1)
+            throw new Error("§cYou don't have enough space in your inventory to get your item back!");
+
+        // create the item
+        ItemStack item = marketHelper.createItemFromListing(listing);
+        player.getInventory().addItem(item);
+
+        // send message to the player
+        player.sendMessage("§aYou deleted your listing for " + listing.material + "!");
+
     }
 
 }

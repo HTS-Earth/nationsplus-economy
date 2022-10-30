@@ -26,6 +26,10 @@ public class MarketHandler implements CommandExecutor, CommandHandlerInterface {
                         market.addMarketListing(player, Integer.parseInt(args[0]));
                         break;
 
+                    case "listings":
+                        marketGUI.openListingsGUI(player);
+                        break;
+
                 }
             } catch (SQLException e) {
                 player.sendMessage("§cThere was an error while executing the command!");

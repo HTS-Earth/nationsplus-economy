@@ -57,6 +57,12 @@ public class MarketHelper extends SQLHelper {
         return serializeMarketListings(rs);
     }
 
+    public List<DBMarketListing> getMarketListingsByPlayerId(String playerId) throws SQLException, Exception {
+        ResultSet rs = query("SELECT * from market_listing WHERE seller_id = ?", playerId);
+        // serialize market listings
+        return serializeMarketListings(rs);
+    }
+
     public void addMarketListing(DBMarketListing listing) throws SQLException, Exception {
         String query = "INSERT INTO market_listing (seller_id, material, amount, lore_name, price, enchantments, date) VALUES (?, ?, ?, ?, ?, ?, ?)";
 

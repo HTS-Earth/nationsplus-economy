@@ -18,7 +18,6 @@ public class NationHelper extends SQLHelper {
         nation.transfer_tax = rs.getInt("transfer_tax");
         nation.income_tax = rs.getInt("income_tax");
         nation.market_tax = rs.getInt("market_tax");
-        System.out.println(nation.transfer_tax);
         return nation;
     }
 

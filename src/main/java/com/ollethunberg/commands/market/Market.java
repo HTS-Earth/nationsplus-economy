@@ -1,7 +1,9 @@
 package com.ollethunberg.commands.market;
 
 import com.ollethunberg.NationsPlusEconomy;
+import com.ollethunberg.lib.helpers.NationHelper;
 import com.ollethunberg.lib.helpers.PlayerHelper;
+import com.ollethunberg.lib.models.Nation;
 import com.ollethunberg.lib.models.db.DBMarketListing;
 import com.ollethunberg.lib.models.db.DBPlayer;
 import com.ollethunberg.utils.WalletBalanceHelper;
@@ -20,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 public class Market extends WalletBalanceHelper {
 
     MarketHelper marketHelper = new MarketHelper();
+    NationHelper nationHelper = new NationHelper();
     PlayerHelper playerHelper = new PlayerHelper();
 
     public void addMarketListing(Player player, Integer price) throws SQLException, Exception {
@@ -81,20 +84,39 @@ public class Market extends WalletBalanceHelper {
         // create the item
         ItemStack item = marketHelper.createItemFromListing(listing);
 
-        // remove the money from the player
-        addBalancePlayer(player.getUniqueId().toString(), listing.price);
+        DBPlayer dbSeller = playerHelper.getPlayer(listing.seller_id);
+        // get market_tax from buyers nation
+        Nation sellerNation = nationHelper.getNation(dbSeller.nation);
 
-        // add the item to the player
-        player.getInventory().addItem(item);
+        // calculate tax
+        float tax = listing.price * (sellerNation.market_tax / 100f);
+
+        // remove the money from the player
+        addBalancePlayer(player.getUniqueId().toString(), -listing.price);
+
+        addBalancePlayer(listing.seller_id, listing.price - tax);
+
+        nationHelper.addMoney(dbSeller.nation, tax);
 
         // remove the listing from the database
         marketHelper.removeMarketListing(id);
+
+        // add the item to the player
+        player.getInventory().addItem(item);
 
         // send message to the player
         player.sendMessage(
                 "§aYou bought " + listing.amount + " of " + listing.material + " for "
                         + NationsPlusEconomy.dollarFormat.format(listing.price) + "!");
+        // send message to the seller if he is online
+        Player seller = plugin.getServer().getPlayer(listing.seller_id);
+        if (seller != null) {
+            seller.sendMessage(
+                    "§7Your item " + listing.material + " was sold for §a"
+                            + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!",
+                    "§7You earned §a" + NationsPlusEconomy.dollarFormat.format(listing.price - tax) + "§7 after tax!");
 
+        }
     }
 
 }

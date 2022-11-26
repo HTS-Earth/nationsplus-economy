@@ -83,7 +83,7 @@ public class Market extends WalletBalanceHelper {
         if (dbSeller == null) {
             throw new Error("Seller doesn't have a wallet!");
         }
-        // get market_tax from buyers nation
+        // get market_tax from sellers nation
         Nation sellerNation = nationHelper.getNation(dbSeller.nation);
 
         // calculate tax

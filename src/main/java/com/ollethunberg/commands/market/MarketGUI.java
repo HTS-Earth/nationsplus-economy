@@ -21,6 +21,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ollethunberg.GUI.GUIManager;
 import com.ollethunberg.commands.market.MarketHelper.ListingStatus;
+import com.ollethunberg.lib.helpers.NationHelper;
+import com.ollethunberg.lib.models.Nation;
 import com.ollethunberg.lib.models.db.DBMarketListing;
 
 import net.md_5.bungee.api.ChatColor;
@@ -31,6 +33,7 @@ public class MarketGUI extends GUIManager implements Listener {
     }
 
     Market market = new Market();
+    NationHelper nationHelper = new NationHelper();
     MarketHelper marketHelper = new MarketHelper();
     private Inventory inventory;
     private static Locale usa = new Locale("en", "US");
@@ -44,7 +47,10 @@ public class MarketGUI extends GUIManager implements Listener {
     public void openMarketGUI(Player player, Integer page) throws SQLException, Exception {
         // get listing
         List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD, page);
-        openListingsGUIItems(player, listings, page);
+
+        Nation nation = nationHelper.getNationOfPlayer(player.getUniqueId().toString());
+
+        openListingsGUIItems(player, listings, page, nation != null ? nation.vat_tax : 0);
     }
 
     public void openListingsGUI(Player player, Integer page) throws SQLException, Exception {
@@ -73,6 +79,10 @@ public class MarketGUI extends GUIManager implements Listener {
 
         lore.add(ChatColor.WHITE + "Price: "
                 + "§a" + dollarFormat.format(listing.price));
+        // add the additional lore
+        for (String s : additionalLore) {
+            lore.add(s);
+        }
         if (intention == OpenMarketIntention.ALL) {
             lore.add(ChatColor.WHITE + "Seller: "
                     + "§a" + Bukkit.getOfflinePlayer(UUID.fromString(listing.seller_id)).getName());
@@ -98,12 +108,14 @@ public class MarketGUI extends GUIManager implements Listener {
         return item;
     }
 
-    public void openListingsGUIItems(Player player, List<DBMarketListing> listings, Integer page) {
+    public void openListingsGUIItems(Player player, List<DBMarketListing> listings, Integer page, Integer vat_tax) {
         inventory = Bukkit.createInventory(null, rowsToSize(6),
                 GUITitles.get("market") + " §7(All)" + "#" + page);
         // for loop with index
         for (int i = 0; i < listings.size(); i++) {
-            inventory.setItem(i, getListingGUIItem(listings.get(i), OpenMarketIntention.ALL));
+            inventory.setItem(i,
+                    getListingGUIItem(listings.get(i), OpenMarketIntention.ALL, "§c+ VAT: " + vat_tax + "% ("
+                            + dollarFormat.format(listings.get(i).price * (vat_tax / 100.0)) + ")"));
         }
         inventory.setItem(53, navigationButtonItem(NavigationButtonType.NEXT));
         inventory.setItem(45, navigationButtonItem(NavigationButtonType.PREVIOUS));

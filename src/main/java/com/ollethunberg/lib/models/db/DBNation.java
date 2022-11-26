@@ -11,6 +11,7 @@ public class DBNation {
     public int income_tax;
     public int transfer_tax;
     public int market_tax;
+    public int vat_tax;
     public int x = 0;
     public int y = 0;
     public int z = 0;

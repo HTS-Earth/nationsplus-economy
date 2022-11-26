@@ -61,15 +61,20 @@ public class Market extends WalletBalanceHelper {
     public void buyMarketListing(Player player, Integer id) throws SQLException, Error {
         // get the listing from database
         DBMarketListing listing = marketHelper.getMarketListing(id);
-        if (listing.seller_id.equals(player.getUniqueId().toString())) {
+        if (listing.seller_id.equals(player.getUniqueId().toString()))
             throw new Error("You can't buy your own listing!");
-        }
+
         // check if the player has enough money
         DBPlayer dbPlayer = playerHelper.getPlayer(player.getUniqueId().toString());
-        if (dbPlayer == null) {
+        if (dbPlayer == null)
             throw new Error("You don't have a wallet!");
-        }
-        if (dbPlayer.balance < listing.price)
+
+        // get the VAT from the buyers nation
+        Nation buyerNation = nationHelper.getNation(dbPlayer.nation);
+        // log the vat
+        NationsPlusEconomy.LOGGER.info("VAT: " + buyerNation.vat_tax);
+        float buyerVATAmount = buyerNation != null ? (listing.price * (buyerNation.vat_tax / 100f)) : 0f;
+        if (dbPlayer.balance < (listing.price + buyerVATAmount))
             throw new Error("§cYou don't have enough money to buy this item!");
 
         // check if the player has enough space in inventory
@@ -80,21 +85,23 @@ public class Market extends WalletBalanceHelper {
         ItemStack item = marketHelper.createItemFromListing(listing);
 
         DBPlayer dbSeller = playerHelper.getPlayer(listing.seller_id);
-        if (dbSeller == null) {
+        if (dbSeller == null)
             throw new Error("Seller doesn't have a wallet!");
-        }
         // get market_tax from sellers nation
         Nation sellerNation = nationHelper.getNation(dbSeller.nation);
+        float sellerNationMarketTax = sellerNation != null ? listing.price * sellerNation.market_tax / 100f : 0f;
 
         // calculate tax
-        float tax = listing.price * (sellerNation.market_tax / 100f);
+        float tax = listing.price * (sellerNationMarketTax / 100f);
 
         // remove the money from the player
-        addBalancePlayer(player.getUniqueId().toString(), -listing.price);
+        addBalancePlayer(player.getUniqueId().toString(), -(listing.price + buyerVATAmount));
 
         addBalancePlayer(listing.seller_id, listing.price - tax);
 
         nationHelper.addMoney(dbSeller.nation, tax);
+        if (buyerNation != null)
+            nationHelper.addMoney(buyerNation.name, buyerVATAmount);
 
         // remove the listing from the database
         marketHelper.executeMarketListing(dbPlayer.uid, id);
@@ -105,16 +112,18 @@ public class Market extends WalletBalanceHelper {
         // send message to the player
         player.sendMessage(
                 "§aYou bought " + listing.amount + " of " + listing.material + " for "
-                        + NationsPlusEconomy.dollarFormat.format(listing.price) + "!");
+                        + NationsPlusEconomy.dollarFormat.format(listing.price) + " and paid "
+                        + NationsPlusEconomy.dollarFormat.format(buyerVATAmount) + " in taxes");
         // send message to the seller if he is online
         Player seller = plugin.getServer().getPlayer(listing.seller_id);
         if (seller != null) {
             seller.sendMessage(
                     "§7Your item " + listing.material + " was sold for §a"
                             + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!",
-                    "§7You earned §a" + NationsPlusEconomy.dollarFormat.format(listing.price - tax) + "§7 after tax!");
-
+                    "§7You earned §a" + NationsPlusEconomy.dollarFormat.format(listing.price - tax)
+                            + "§7 after tax!");
         }
+
     }
 
     public void deleteMarketListing(Player player, Integer id) throws Error, SQLException {

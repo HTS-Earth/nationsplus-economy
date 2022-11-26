@@ -5,8 +5,11 @@ import java.sql.SQLException;
 
 import com.ollethunberg.lib.models.Nation;
 import com.ollethunberg.lib.models.db.DBNation;
+import com.ollethunberg.lib.models.db.DBPlayer;
 
 public class NationHelper extends SQLHelper {
+    PlayerHelper playerHelper = new PlayerHelper();
+
     public DBNation serializeDBNation(ResultSet rs) throws SQLException {
         DBNation nation = new Nation();
 
@@ -18,6 +21,7 @@ public class NationHelper extends SQLHelper {
         nation.transfer_tax = rs.getInt("transfer_tax");
         nation.income_tax = rs.getInt("income_tax");
         nation.market_tax = rs.getInt("market_tax");
+        nation.vat_tax = rs.getInt("vat_tax");
         return nation;
     }
 
@@ -36,10 +40,18 @@ public class NationHelper extends SQLHelper {
                 "SELECT n.*, p.player_name as king_name, (select count(p.*)from player as p where p.nation = n.name) as \"membersCount\" from nation as n inner join player as p on p.uid=n.king_id where n.name=?",
                 nationName);
         if (!rs.next()) {
-            throw new Error("No nation found");
+            return null;
         }
         return serializeNation(rs);
 
+    }
+
+    public Nation getNationOfPlayer(String player_id) throws SQLException {
+        DBPlayer dbPlayer = playerHelper.getPlayer(player_id);
+        if (dbPlayer == null || dbPlayer.nation == null) {
+            return null;
+        }
+        return getNation(dbPlayer.nation);
     }
 
     public void setTax(String nationName, String taxType, float tax) throws SQLException {

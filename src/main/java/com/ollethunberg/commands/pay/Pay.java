@@ -49,7 +49,7 @@ public class Pay extends WalletBalanceHelper {
             // get the nation of the receiver
             Nation nation = nationHelper.getNation(targetPlayer.nation);
             // get the transfer tax rate of the nation
-            float tax = (nation.transfer_tax / 100f) * amount;
+            float tax = nation != null ? ((nation.transfer_tax / 100f) * amount) : 0;
 
             // get the amount that the receiver will receive
             float receiverAmount = amount - tax;
@@ -60,7 +60,9 @@ public class Pay extends WalletBalanceHelper {
             update("UPDATE player SET balance = balance - ? where uid = ?", amount,
                     sender.getUniqueId().toString());
 
-            addBalanceNation(nation.name, tax);
+            if (nation != null) {
+                addBalanceNation(nation.name, tax);
+            }
 
             sender.sendMessage(NationsPlusEconomy.walletPrefix + "§eYou paid §6[§r" + target
                     + "§6]§r §a$" + amount + ", §eand the nation took §c$" + tax + "§e as tax!");

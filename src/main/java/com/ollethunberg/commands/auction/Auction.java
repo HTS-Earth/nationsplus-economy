@@ -24,6 +24,9 @@ public class Auction extends WalletBalanceHelper {
     public NationsPlusEconomy plugin = NationsPlusEconomy.getPlugin(NationsPlusEconomy.class);
 
     public void bid(Player player, Integer amount) throws SQLException, Error {
+        if (amount <= 0) {
+            throw new Error("You can't bid a negative amount");
+        }
         DBAuctionItem activeAuctionItem = auctionHelper.getActiveAuctionItem();
         if (activeAuctionItem == null || plugin.auctionTask == null || plugin.auctionTask.isCancelled()) {
             throw new Error("No active auction item");

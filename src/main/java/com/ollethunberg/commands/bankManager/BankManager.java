@@ -134,7 +134,8 @@ public class BankManager extends WalletBalanceHelper {
         DBLoan loan = loanHelper.getLoanById(id);
         // get the customer of the loan
         DBPlayer customer = playerHelper.getPlayer(loan.player_id);
-
+        if (customer == null)
+            throw new Error("Customer not found");
         bankManagerGUI.loanInfo(player, loan, customer.player_name, backCmd);
     }
 

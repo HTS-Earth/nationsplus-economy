@@ -4,6 +4,8 @@ version: 0.0.1
 api-version: 1.19
 author: Olle Thunberg
 description: A plugin for NationsPlus that adds an economy
+libraries:
+  - org.postgresql:postgresql:42.3.6
 commands:
   balance:
     description: Check your balance
@@ -45,3 +47,11 @@ commands:
     description: Shows your current active listings on the market
     usage: /<command>
     aliases: [listings, listing, ls]
+  bid:
+    description: Make a bid on the current auction item.
+    usage: /<command> <amount>
+    aliases: [bid]
+  auction:
+    description: Create an auction of the item you're holding in main hand
+    usage: /<command>
+    aliases: [auction, auc]

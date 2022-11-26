@@ -1,23 +1,19 @@
 package com.ollethunberg.commands.market;
 
+import java.sql.SQLException;
+
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+
 import com.ollethunberg.NationsPlusEconomy;
 import com.ollethunberg.lib.helpers.NationHelper;
 import com.ollethunberg.lib.helpers.PlayerHelper;
 import com.ollethunberg.lib.models.Nation;
 import com.ollethunberg.lib.models.db.DBMarketListing;
 import com.ollethunberg.lib.models.db.DBPlayer;
+import com.ollethunberg.utils.EnchantmentHelper;
 import com.ollethunberg.utils.WalletBalanceHelper;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.bukkit.NamespacedKey;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class Market extends WalletBalanceHelper {
 
@@ -50,15 +46,7 @@ public class Market extends WalletBalanceHelper {
         listing.lore_name = item.getItemMeta().getDisplayName();
         listing.price = price;
 
-        Map<Enchantment, Integer> enchants = item.getEnchantments();
-        List<String> enchantList = new ArrayList<String>();
-        for (Enchantment e : item.getEnchantments().keySet()) {
-            int level = enchants.get(e);
-            NamespacedKey key = e.getKey();
-            String enchant = key.getKey() + ":" + level;
-            enchantList.add(enchant + ":" + level);
-        }
-        listing.enchantments = String.join(",", enchantList);
+        listing.enchantments = EnchantmentHelper.getEnchantmentsAsString(item);
 
         listing.date = new java.util.Date().toString();
         if (item.getItemMeta().hasLore()) {
@@ -78,7 +66,9 @@ public class Market extends WalletBalanceHelper {
         }
         // check if the player has enough money
         DBPlayer dbPlayer = playerHelper.getPlayer(player.getUniqueId().toString());
-
+        if (dbPlayer == null) {
+            throw new Error("You don't have a wallet!");
+        }
         if (dbPlayer.balance < listing.price)
             throw new Error("§cYou don't have enough money to buy this item!");
 
@@ -90,6 +80,9 @@ public class Market extends WalletBalanceHelper {
         ItemStack item = marketHelper.createItemFromListing(listing);
 
         DBPlayer dbSeller = playerHelper.getPlayer(listing.seller_id);
+        if (dbSeller == null) {
+            throw new Error("Seller doesn't have a wallet!");
+        }
         // get market_tax from buyers nation
         Nation sellerNation = nationHelper.getNation(dbSeller.nation);
 

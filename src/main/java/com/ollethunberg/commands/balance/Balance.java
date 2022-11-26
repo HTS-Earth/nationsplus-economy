@@ -67,6 +67,9 @@ public class Balance extends WalletBalanceHelper {
                 // give to player
                 // get the player by name from server
                 Player targetPlayer = sender.getServer().getPlayer(target);
+                if (targetPlayer == null) {
+                    throw new Error("§cThat player doesn't exist!");
+                }
 
                 float newBalance = addBalancePlayer(targetPlayer.getUniqueId().toString(), amount);
                 sender.sendMessage("§4[§cADMIN-TOOL§4] §r§eGave §a" + NationsPlusEconomy.dollarFormat.format(amount)

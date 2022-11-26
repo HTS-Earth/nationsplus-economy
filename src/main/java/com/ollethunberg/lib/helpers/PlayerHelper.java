@@ -31,7 +31,7 @@ public class PlayerHelper extends SQLHelper {
     public DBPlayer getPlayer(String uid) throws SQLException {
         ResultSet rs = query("SELECT * from player where uid=?", uid);
         if (!rs.next()) {
-            throw new Error("No player found");
+            return null;
         }
         return serializeDBPlayer(rs);
     }
@@ -39,7 +39,7 @@ public class PlayerHelper extends SQLHelper {
     public DBPlayer getPlayerByName(String name) throws SQLException {
         ResultSet rs = query("SELECT * from player where LOWER(player_name)=LOWER(?)", name);
         if (!rs.next()) {
-            throw new Error("No player found");
+            return null;
         }
         return serializeDBPlayer(rs);
     }

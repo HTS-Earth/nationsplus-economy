@@ -7,13 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.ollethunberg.lib.helpers.SQLHelper;
 import com.ollethunberg.lib.models.db.DBMarketListing;
+import com.ollethunberg.utils.EnchantmentHelper;
 
 public class MarketHelper extends SQLHelper {
     public DBMarketListing serializeMarketListing(ResultSet rs) throws SQLException {
@@ -97,14 +96,7 @@ public class MarketHelper extends SQLHelper {
         meta.setDisplayName(listing.lore_name);
         // set enchantments
         if (listing.enchantments != null) {
-            List<String> enchantments = Arrays.asList(listing.enchantments.split(","));
-            for (String enchantment : enchantments) {
-                if (enchantment.equals(""))
-                    continue;
-                String[] enchantmentSplit = enchantment.split(":");
-                item.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(enchantmentSplit[0])),
-                        Integer.parseInt(enchantmentSplit[1]));
-            }
+            item = EnchantmentHelper.addEnchants(item, listing.enchantments);
         }
         // add lore
         if (listing.lore != null) {

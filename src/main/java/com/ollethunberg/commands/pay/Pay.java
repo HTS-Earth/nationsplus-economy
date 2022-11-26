@@ -38,6 +38,9 @@ public class Pay extends WalletBalanceHelper {
         // check if the target exists
 
         DBPlayer targetPlayer = playerHelper.getPlayerByName(target);
+        if (targetPlayer == null) {
+            throw new Error("§cThat player doesn't exist!");
+        }
 
         // check if the target is the sender
         if (targetPlayer.uid.equalsIgnoreCase(sender.getUniqueId().toString())) {

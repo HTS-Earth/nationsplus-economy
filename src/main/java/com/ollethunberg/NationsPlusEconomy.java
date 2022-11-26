@@ -13,8 +13,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.postgresql.Driver;
 
+import com.ollethunberg.commands.auction.Auction;
+import com.ollethunberg.commands.auction.AuctionHandler;
+import com.ollethunberg.commands.auction.AuctionHelper;
 import com.ollethunberg.commands.balance.BalanceHandler;
 import com.ollethunberg.commands.bank.BankGUI;
 import com.ollethunberg.commands.bank.BankHandler;
@@ -34,10 +39,13 @@ import com.ollethunberg.utils.WalletBalanceHelper;
  * nationsplus-economy java plugin
  */
 public class NationsPlusEconomy extends JavaPlugin {
+  public BukkitTask auctionTask;
+
   public static String bankPrefix = "§6[§rBank§6]§r ";
   public static String loanPrefix = "§6[§rBank-Loans§6]§r ";
   public static String walletPrefix = "§6[§rWallet§6]§r ";
   public static String bankManagerPrefix = "§6[§rBank Manager§6]§r ";
+  public static String auctionPrefix = "§6[§rAuction§6]§r ";
   private static Locale usa = new Locale("en", "US");
 
   public static NumberFormat dollarFormat = NumberFormat.getCurrencyInstance(usa);
@@ -55,6 +63,7 @@ public class NationsPlusEconomy extends JavaPlugin {
   private PayHandler payHandler;
   private BanksHandler banksHandler;
   private CloseHandler closeHandler;
+  private AuctionHandler auctionHandler;
   private BankGUI bankGUI;
   private LoanGUI loanGUI;
   private BankManagerGUI bankManagerGUI;
@@ -62,6 +71,9 @@ public class NationsPlusEconomy extends JavaPlugin {
   private WalletBalanceHelper walletBalanceHelper;
   private MarketHandler marketHandler;
   private MarketGUI marketGUI;
+
+  private Auction auction;
+  public Integer auctionTimeLeft = 0;
 
   public void onEnable() {
     loadConfig();
@@ -90,6 +102,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       bankManagerGUI = new BankManagerGUI();
       marketHandler = new MarketHandler();
       marketGUI = new MarketGUI();
+      auctionHandler = new AuctionHandler();
       // Register commands
       getCommand("balance").setExecutor(balanceHandler);
       getCommand("bank").setExecutor(bankHandler);
@@ -101,6 +114,8 @@ public class NationsPlusEconomy extends JavaPlugin {
       getCommand("market").setExecutor(marketHandler);
       getCommand("sell").setExecutor(marketHandler);
       getCommand("listings").setExecutor(marketHandler);
+      getCommand("bid").setExecutor(auctionHandler);
+      getCommand("auction").setExecutor(auctionHandler);
 
       /* Register event listeners */
       getServer().getPluginManager().registerEvents(bankGUI, this);
@@ -108,6 +123,7 @@ public class NationsPlusEconomy extends JavaPlugin {
       getServer().getPluginManager().registerEvents(bankManagerGUI, this);
       getServer().getPluginManager().registerEvents(marketGUI, this);
 
+      auction = new Auction();
       this.runTimer();
     } catch (SQLException e) {
       System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
@@ -255,10 +271,48 @@ public class NationsPlusEconomy extends JavaPlugin {
         }
 
       }
-    }, 20 * 10 * 10);
+    }, 20 * 10 * 2);
+  }
+
+  public void initAuctionTimer() {
+    auctionTimeLeft = 60 * 5; // 5 minutes
+    auctionTask = new BukkitRunnable() {
+      @Override
+      public void run() {
+        auctionTimeLeft--;
+        if (auctionTimeLeft == 60) {
+          Bukkit.broadcastMessage(auctionPrefix + "§e 1 minute left of auction!");
+        }
+        if (auctionTimeLeft == 30) {
+          Bukkit.broadcastMessage(auctionPrefix + "§e 30 seconds left of auction!");
+        }
+        if (auctionTimeLeft <= 10) {
+          Bukkit.broadcastMessage(auctionPrefix + "§e " + auctionTimeLeft + " seconds left of auction!");
+        }
+        if (auctionTimeLeft == 0) {
+          try {
+            auction.endAuction();
+          } catch (SQLException e) {
+            e.printStackTrace();
+          } finally {
+            if (!this.isCancelled()) {
+              this.cancel();
+              auctionTask = null;
+            }
+          }
+
+        }
+
+      }
+    }.runTaskTimerAsynchronously(this, 20L, 20L); // 9 mintues in ticks
   }
 
   public void onDisable() {
+    if (auctionTask != null && !auctionTask.isCancelled()) {
+      auctionTask.cancel();
+      auctionTask = null;
+    }
+    new AuctionHelper().clearAuction();
     LOGGER.info("nationsplus-economy disabled");
   }
 

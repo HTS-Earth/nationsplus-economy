@@ -271,7 +271,7 @@ public class NationsPlusEconomy extends JavaPlugin {
         }
 
       }
-    }, 20 * 10 * 2);
+    }, 20 * 60 * 30);
   }
 
   public void initAuctionTimer() {

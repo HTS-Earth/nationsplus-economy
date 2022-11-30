@@ -60,8 +60,8 @@ public class Market extends WalletBalanceHelper {
         marketHelper.addMarketListing(listing);
         player.sendMessage(
                 NationsPlusEconomy.marketPrefix + "§aAdded market listing! View your listings with /listings");
-        Bukkit.broadcastMessage(NationsPlusEconomy.marketPrefix + "§a" + player.getName() + ": new market listing  "
-                + NationsPlusEconomy.dollarFormat.format(price) + " for " + item.getAmount() + "x "
+        Bukkit.broadcastMessage(NationsPlusEconomy.marketPrefix + "§7" + player.getName() + ": new market listing §a"
+                + NationsPlusEconomy.dollarFormat.format(price) + "§7 for §6" + item.getAmount() + "§7x §6"
                 + item.getType().name() + ". View by /market");
 
     }

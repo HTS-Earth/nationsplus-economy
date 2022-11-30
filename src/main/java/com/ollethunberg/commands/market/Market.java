@@ -69,6 +69,11 @@ public class Market extends WalletBalanceHelper {
     public void buyMarketListing(Player player, Integer id) throws SQLException, Error {
         // get the listing from database
         DBMarketListing listing = marketHelper.getMarketListing(id);
+        if (listing == null)
+            throw new Error("Listing not found");
+        if (listing.date_sold != null || listing.buyer_id != null)
+            throw new Error("Listing already sold");
+
         if (listing.seller_id.equals(player.getUniqueId().toString()))
             throw new Error("You can't buy your own listing!");
 
@@ -132,8 +137,8 @@ public class Market extends WalletBalanceHelper {
                             + "§7 after tax!");
         }
         Material material = Material.getMaterial(listing.material);
-        Bukkit.broadcastMessage(NationsPlusEconomy.marketPrefix + "§7" + "x" + listing.amount + " " + material.name()
-                + " was sold for §a"
+        Bukkit.broadcastMessage(NationsPlusEconomy.marketPrefix + "§6" + "x" + listing.amount + " " + material.name()
+                + "§7 was sold for §a"
                 + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!");
 
     }

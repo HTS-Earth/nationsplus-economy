@@ -46,6 +46,7 @@ public class NationsPlusEconomy extends JavaPlugin {
   public static String walletPrefix = "§6[§rWallet§6]§r ";
   public static String bankManagerPrefix = "§6[§rBank Manager§6]§r ";
   public static String auctionPrefix = "§6[§rAuction§6]§r ";
+  public static String marketPrefix = "§6[§rMarket§6]§r ";
   private static Locale usa = new Locale("en", "US");
 
   public static NumberFormat dollarFormat = NumberFormat.getCurrencyInstance(usa);

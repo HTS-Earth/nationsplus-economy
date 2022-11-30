@@ -2,6 +2,8 @@ package com.ollethunberg.commands.market;
 
 import java.sql.SQLException;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -56,6 +58,12 @@ public class Market extends WalletBalanceHelper {
         player.getInventory().removeItem(item);
 
         marketHelper.addMarketListing(listing);
+        player.sendMessage(
+                NationsPlusEconomy.marketPrefix + "§aAdded market listing! View your listings with /listings");
+        Bukkit.broadcastMessage("§a" + player.getName() + " has added a market listing for "
+                + NationsPlusEconomy.dollarFormat.format(price) + " for " + item.getAmount() + " "
+                + item.getType().name() + ". View it with /market");
+
     }
 
     public void buyMarketListing(Player player, Integer id) throws SQLException, Error {
@@ -110,19 +118,23 @@ public class Market extends WalletBalanceHelper {
         player.getInventory().addItem(item);
 
         // send message to the player
-        player.sendMessage(
+        player.sendMessage(NationsPlusEconomy.marketPrefix +
                 "§aYou bought " + listing.amount + " of " + listing.material + " for "
-                        + NationsPlusEconomy.dollarFormat.format(listing.price) + " and paid "
-                        + NationsPlusEconomy.dollarFormat.format(buyerVATAmount) + " in taxes");
+                + NationsPlusEconomy.dollarFormat.format(listing.price) + " and paid "
+                + NationsPlusEconomy.dollarFormat.format(buyerVATAmount) + " in taxes");
         // send message to the seller if he is online
         Player seller = plugin.getServer().getPlayer(listing.seller_id);
         if (seller != null) {
-            seller.sendMessage(
+            seller.sendMessage(NationsPlusEconomy.marketPrefix +
                     "§7Your item " + listing.material + " was sold for §a"
-                            + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!",
+                    + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!",
                     "§7You earned §a" + NationsPlusEconomy.dollarFormat.format(listing.price - tax)
                             + "§7 after tax!");
         }
+        Material material = Material.getMaterial(listing.material);
+        Bukkit.broadcastMessage(NationsPlusEconomy.marketPrefix + "§7" + "x" + listing.amount + " " + material.name()
+                + " was sold for §a"
+                + NationsPlusEconomy.dollarFormat.format(listing.price) + "§7!");
 
     }
 

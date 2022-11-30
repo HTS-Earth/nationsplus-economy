@@ -46,7 +46,7 @@ public class MarketGUI extends GUIManager implements Listener {
 
     public void openMarketGUI(Player player, Integer page) throws SQLException, Exception {
         // get listing
-        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD, page);
+        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD, page, null);
 
         Nation nation = nationHelper.getNationOfPlayer(player.getUniqueId().toString());
 
@@ -55,8 +55,9 @@ public class MarketGUI extends GUIManager implements Listener {
 
     public void openListingsGUI(Player player, Integer page) throws SQLException, Exception {
         // get listing
-        List<DBMarketListing> listings = marketHelper.getMarketListingsByPlayerId(player.getUniqueId().toString(),
-                page);
+        List<DBMarketListing> listings = marketHelper.getMarketListings(ListingStatus.UNSOLD, page,
+                player.getUniqueId().toString());
+
         openMyListingsGUIItems(player, listings, page);
     }
 

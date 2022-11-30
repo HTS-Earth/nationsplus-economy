@@ -56,7 +56,8 @@ public class MarketHelper extends SQLHelper {
         ALL, SOLD, UNSOLD
     }
 
-    public List<DBMarketListing> getMarketListings(ListingStatus status, Integer page) throws SQLException, Exception {
+    public List<DBMarketListing> getMarketListings(ListingStatus status, Integer page, String playerId)
+            throws SQLException, Exception {
         // if executed is false, then only return listings with no buyer_id and no
         // date_sold
         switch (status) {
@@ -67,20 +68,19 @@ public class MarketHelper extends SQLHelper {
                         query("SELECT * FROM market_listing WHERE buyer_id IS NOT NULL AND date_sold IS NOT NULL LIMIT 45 OFFSET ?",
                                 page * 45));
             case UNSOLD:
-                return serializeMarketListings(
-                        query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL LIMIT 45 OFFSET ?",
-                                page * 45));
+                if (playerId == null) {
+                    return serializeMarketListings(
+                            query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL LIMIT 45 OFFSET ?",
+                                    page * 45));
+                } else {
+                    return serializeMarketListings(
+                            query("SELECT * FROM market_listing WHERE buyer_id IS NULL AND date_sold IS NULL AND seller_id = ? LIMIT 45 OFFSET ?",
+                                    playerId, page * 45));
+                }
             default:
                 return serializeMarketListings(query("SELECT * FROM market_listing LIMIT 45 OFFSET ?", page * 45));
         }
 
-    }
-
-    public List<DBMarketListing> getMarketListingsByPlayerId(String playerId, Integer page)
-            throws SQLException, Exception {
-        ResultSet rs = query("SELECT * from market_listing WHERE seller_id = ? LIMIT 45 OFFSET ?", playerId, page * 45);
-        // serialize market listings
-        return serializeMarketListings(rs);
     }
 
     public void addMarketListing(DBMarketListing listing) throws SQLException, Exception {
@@ -110,6 +110,7 @@ public class MarketHelper extends SQLHelper {
 
     // remove market listing by id
     public void deleteMarketListing(Integer id) throws SQLException, Error {
+
         String query = "DELETE FROM market_listing WHERE id = ?";
         update(query, id);
     }

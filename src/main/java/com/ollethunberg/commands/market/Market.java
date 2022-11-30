@@ -132,6 +132,10 @@ public class Market extends WalletBalanceHelper {
         if (!listing.seller_id.equals(player.getUniqueId().toString())) {
             throw new Error("You can't delete someone else's listing!");
         }
+        // check if the listing is sold or has a buyer
+        if (listing.buyer_id != null || listing.date_sold != null)
+            throw new Error("You can't delete a listing that has been sold!");
+
         // remove the listing from the database
         marketHelper.deleteMarketListing(id);
 

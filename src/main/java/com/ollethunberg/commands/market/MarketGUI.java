@@ -65,13 +65,16 @@ public class MarketGUI extends GUIManager implements Listener {
         Material m = Material.getMaterial(listing.material);
         ItemStack item = new ItemStack(m, listing.amount);
         // add enchants
-        for (String enchant : listing.enchantments.split(",")) {
-            if (enchant.equals(""))
-                continue;
-            String[] enchantSplit = enchant.split(":");
-            item.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(enchantSplit[0])),
-                    Integer.parseInt(enchantSplit[1]));
+        if (listing.enchantments != null) {
+            for (String enchant : listing.enchantments.split(",")) {
+                if (enchant.equals(""))
+                    continue;
+                String[] enchantSplit = enchant.split(":");
+                item.addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(enchantSplit[0])),
+                        Integer.parseInt(enchantSplit[1]));
+            }
         }
+
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(listing.lore_name);
 

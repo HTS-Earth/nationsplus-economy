@@ -215,7 +215,11 @@ public class Bank extends WalletBalanceHelper {
         ResultSet bankAccountResultSet = query("SELECT * from bank_account where LOWER(player_id) = LOWER(?)",
                 player.getUniqueId().toString());
         if (bankAccountResultSet.next()) {
-            // check if the bank has enough money
+            if (bankAccountResultSet.getFloat("balance") < amount) {
+                player.sendMessage(NationsPlusEconomy.bankPrefix + "§cYour account doesn't have enough money!");
+                return;
+            }
+            
             ResultSet bankResultSet = query("SELECT * from bank where LOWER(bank_name) = LOWER(?)",
                     bankAccountResultSet.getString("bank_name"));
             if (bankResultSet.next()) {

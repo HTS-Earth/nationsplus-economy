@@ -68,6 +68,7 @@ public class SQLHelper {
             preparedStatement.setObject(i + 1, args[i]);
         }
         preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     public final void updateAsync(final String query, final UpdateCallback callback, final Object... args)

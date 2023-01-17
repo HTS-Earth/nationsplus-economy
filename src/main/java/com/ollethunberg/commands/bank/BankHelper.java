@@ -48,9 +48,6 @@ public class BankHelper extends SQLHelper {
     }
 
     public Bank serializeBank(ResultSet rs) throws SQLException {
-        if (!rs.next()) {
-            throw new Error("No bank found");
-        }
         Bank bank = new Bank();
         bank.bank_name = rs.getString("bank_name");
         bank.owner = rs.getString("owner");
@@ -59,6 +56,14 @@ public class BankHelper extends SQLHelper {
         bank.customers_balance = rs.getFloat("customers_balance");
         bank.safety_rating = bank.customers_balance / bank.balance;
         return bank;
+    }
+
+    public List<Bank> serializeBanks(ResultSet rs) throws SQLException {
+        List<Bank> banks = new ArrayList<Bank>();
+        while (rs.next()) {
+            banks.add(serializeBank(rs));
+        }
+        return banks;
     }
 
     public DBPlayer getBankOwner(String bank_name) throws SQLException {
@@ -82,13 +87,23 @@ public class BankHelper extends SQLHelper {
         ResultSet bank = query(
                 "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance from bank as b where b.bank_name=?",
                 bank_name);
+        if (!bank.next())
+            throw new SQLException("Bank not found");
         return serializeBank(bank);
+    }
+
+    public List<Bank> getBanks() throws SQLException {
+        ResultSet banks = query(
+                "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance from bank as b");
+        return serializeBanks(banks);
     }
 
     public Bank getBankByOwner(String owner) throws SQLException {
         ResultSet bank = query(
                 "SELECT b.*, (SELECT SUM(balance) from bank_account where bank_name=b.bank_name) as customers_balance from bank as b where b.owner=?",
                 owner);
+        if (!bank.next())
+            throw new SQLException("Bank not found");
         return serializeBank(bank);
     }
 

@@ -18,15 +18,18 @@ import org.bukkit.scheduler.BukkitTask;
 import org.postgresql.Driver;
 
 import com.ollethunberg.commands.auction.Auction;
+import com.ollethunberg.commands.auction.AuctionBidAutoComplete;
 import com.ollethunberg.commands.auction.AuctionHandler;
 import com.ollethunberg.commands.auction.AuctionHelper;
 import com.ollethunberg.commands.balance.BalanceHandler;
+import com.ollethunberg.commands.bank.BankAutoComplete;
 import com.ollethunberg.commands.bank.BankGUI;
 import com.ollethunberg.commands.bank.BankHandler;
 import com.ollethunberg.commands.bank.BanksHandler;
 import com.ollethunberg.commands.bankManager.BankManagerGUI;
 import com.ollethunberg.commands.bankManager.BankManagerHandler;
 import com.ollethunberg.commands.close.CloseHandler;
+import com.ollethunberg.commands.loan.LoanAutoComplete;
 import com.ollethunberg.commands.loan.LoanGUI;
 import com.ollethunberg.commands.loan.LoanHandler;
 import com.ollethunberg.commands.market.MarketGUI;
@@ -117,6 +120,10 @@ public class NationsPlusEconomy extends JavaPlugin {
       getCommand("listings").setExecutor(marketHandler);
       getCommand("bid").setExecutor(auctionHandler);
       getCommand("auction").setExecutor(auctionHandler);
+
+      getCommand("bid").setTabCompleter(new AuctionBidAutoComplete());
+      getCommand("bank").setTabCompleter(new BankAutoComplete());
+      getCommand("loans").setTabCompleter(new LoanAutoComplete());
 
       /* Register event listeners */
       getServer().getPluginManager().registerEvents(bankGUI, this);

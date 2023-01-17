@@ -106,8 +106,8 @@ public class BankManager extends WalletBalanceHelper {
             return;
         }
         // Pay out the loan to the player and notifiy them
-
         updateOfferStatus(player, id, true);
+        addBalancePlayer(loanOffer.player_id, loanOffer.amount_total);
     }
 
     public void cancelLoan(Player player, int id) throws SQLException, Error {

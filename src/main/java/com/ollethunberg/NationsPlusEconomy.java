@@ -279,7 +279,7 @@ public class NationsPlusEconomy extends JavaPlugin {
         }
 
       }
-    }, 20 * 60 * 30);
+    }, 20 * 60 * 30); // 30 minutes
   }
 
   public void initAuctionTimer() {
@@ -329,9 +329,7 @@ public class NationsPlusEconomy extends JavaPlugin {
 
     // get the player
     Player player = Bukkit.getPlayer(playerId);
-    // log player name
-    String playerName = player.getName();
-    System.out.println(playerName);
+    
 
     SQLHelper.update(
         "update bank_loan set amount_paid = amount_paid + ?, payments_left = payments_left - 1 where id = ?;",

@@ -64,6 +64,7 @@ public class BankManagerHandler implements CommandExecutor {
                                     String offersAction = args[2].toUpperCase();
                                     if (offersAction.equals("ACCEPT")) {
                                         bankManager.acceptLoan(player, Integer.parseInt(args[3]));
+                                        
                                     } else if (offersAction.equals("DECLINE")) {
                                         bankManager.updateOfferStatus(player, Integer.parseInt(args[3]), false);
                                     }

@@ -126,6 +126,9 @@ public class BankManager extends WalletBalanceHelper {
         }
         // Pay out the loan to the player and notifiy them
         updateOfferStatus(player, id, true);
+        // update the balance of the bank
+        String query = "UPDATE bank SET balance = balance - ? WHERE bank_name = ?";
+        update(query, loanOffer.amount_total, bank.bank_name);
         addBalancePlayer(loanOffer.player_id, loanOffer.amount_total);
     }
 

@@ -50,6 +50,18 @@ public class BankManagerHandler implements CommandExecutor {
                         bankManager.getAccounts(player);
                         break;
                     }
+                    case "DEPOSIT": {
+                        if (args.length == 1)
+                            throw new IllegalArgumentException("§cYou need to specify an amount to deposit!");
+                        bankManager.deposit(player, Integer.parseInt(args[1]));
+                        break;
+                    }
+                    case "WITHDRAW": {
+                        if (args.length == 1)
+                            throw new IllegalArgumentException("§cYou need to specify an amount to withdraw!");
+                        bankManager.withdraw(player, Integer.parseInt(args[1]));
+                        break;
+                    }
                     case "LOANS": {
                         if (args.length == 1) {
                             bankManager.listLoans(player, true, true);
@@ -64,7 +76,7 @@ public class BankManagerHandler implements CommandExecutor {
                                     String offersAction = args[2].toUpperCase();
                                     if (offersAction.equals("ACCEPT")) {
                                         bankManager.acceptLoan(player, Integer.parseInt(args[3]));
-                                        
+
                                     } else if (offersAction.equals("DECLINE")) {
                                         bankManager.updateOfferStatus(player, Integer.parseInt(args[3]), false);
                                     }
@@ -96,6 +108,10 @@ public class BankManagerHandler implements CommandExecutor {
             } catch (NumberFormatException e) {
                 player.sendMessage("§r[§4§lNUMBER-ERROR§r]§c Please provide valid numbers!");
                 return true;
+
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§r[§4§lBAD-INPUT§r]§c Please provide all arguments!");
+                return true;
             } catch (Error | Exception e) {
                 player.sendMessage("§r[§4§lERROR§r]§c " + e.getMessage());
                 return true;
@@ -117,6 +133,8 @@ public class BankManagerHandler implements CommandExecutor {
         player.sendMessage("§c/bankmanager loans" + "§7 - See active loans");
         player.sendMessage("§c/bankmanager loans offers accept [id]" + "§7 - Accept a loan");
         player.sendMessage("§c/bankmanager loans offers decline [id]" + "§7 - Decline a loan");
+        player.sendMessage("§c/bankmanager deposit <amount>" + "§7 - Deposit into the bank balance");
+        player.sendMessage("§c/bankmanager withdraw <amount>" + "§7 - Withdraw from the bank balance");
         player.sendMessage("§c/bankmanager loans cancel [id]" + "§7 - Cancel an accepted and active loan");
         player.sendMessage("§c/bankmanager help §7 - Shows help message");
     }

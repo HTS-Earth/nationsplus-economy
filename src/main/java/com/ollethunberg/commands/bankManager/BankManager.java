@@ -44,6 +44,25 @@ public class BankManager extends WalletBalanceHelper {
                 NationsPlusEconomy.bankManagerPrefix + "§aSaving interest rate is " + interest * 100 + "%");
     }
 
+    public void deposit(Player executor, Integer amount) throws SQLException {
+        Bank bank = bankHelper.getBankByOwnerPlayer(executor);
+        String query = "UPDATE bank SET balance = balance + ? WHERE bank_name = ?";
+        update(query, amount, bank.bank_name);
+        executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§aDeposited "
+                + NationsPlusEconomy.dollarFormat.format(amount) + " to the bank!");
+        // update the balance of the player
+        addBalancePlayer(executor.getUniqueId().toString(), -amount);
+    }
+    public void withdraw(Player executor, Integer amount) throws SQLException {
+        Bank bank = bankHelper.getBankByOwnerPlayer(executor);
+        String query = "UPDATE bank SET balance = balance + ? WHERE bank_name = ?";
+        update(query, -amount, bank.bank_name);
+        executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§aWithdrew "
+                + NationsPlusEconomy.dollarFormat.format(amount) + " to the bank!");
+        // update the balance of the player
+        addBalancePlayer(executor.getUniqueId().toString(), amount);
+    }
+
     public void listLoans(Player executor, boolean active, boolean accepted) throws SQLException, Exception {
         // get the bank which the owner is in
         Bank bank = bankHelper.getBankByOwnerPlayer(executor);

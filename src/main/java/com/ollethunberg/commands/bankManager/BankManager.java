@@ -46,6 +46,11 @@ public class BankManager extends WalletBalanceHelper {
 
     public void deposit(Player executor, Integer amount) throws SQLException {
         Bank bank = bankHelper.getBankByOwnerPlayer(executor);
+        DBPlayer player = playerHelper.getPlayer(executor.getUniqueId().toString());
+        if (player.balance < amount) {
+            executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cNot enough money!");
+            return;
+        }
         String query = "UPDATE bank SET balance = balance + ? WHERE bank_name = ?";
         update(query, amount, bank.bank_name);
         executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§aDeposited "
@@ -55,6 +60,10 @@ public class BankManager extends WalletBalanceHelper {
     }
     public void withdraw(Player executor, Integer amount) throws SQLException {
         Bank bank = bankHelper.getBankByOwnerPlayer(executor);
+        if (bank.balance < amount) {
+            executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§cNot enough money in the bank!");
+            return;
+        }
         String query = "UPDATE bank SET balance = balance + ? WHERE bank_name = ?";
         update(query, -amount, bank.bank_name);
         executor.sendMessage(NationsPlusEconomy.bankManagerPrefix + "§aWithdrew "
